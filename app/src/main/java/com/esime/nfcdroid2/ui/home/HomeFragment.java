@@ -70,8 +70,19 @@ public class HomeFragment extends Fragment {
         saveButton = root.findViewById(R.id.saveButton);
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(requireContext());
+
         if (nfcAdapter == null) {
-            appendLog("E", TAG, "La tecnología NFC no es compatible con este dispositivo.");
+            searchView.setEnabled(false);
+            filterButton.setEnabled(false);
+            saveButton.setEnabled(false);
+
+            consoleTextView.setText("Este dispositivo no es compatible con NFC.");
+            Toast.makeText(requireContext(), "La aplicación se cerrará automáticamente en 5 segundos.", Toast.LENGTH_LONG).show();
+
+            new android.os.Handler().postDelayed(() -> {
+                requireActivity().finishAffinity();
+            }, 5000);
+            return root;
         }
 
         Intent intent = new Intent(requireActivity(), requireActivity().getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -100,17 +111,36 @@ public class HomeFragment extends Fragment {
         return root;
     }
 
+    private void showNfcDisabledDialog() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("NFC DESACTIVADO")
+                .setMessage("El dispositivo tiene el chip NFC APAGADO.\nPor favor, enciéndalo para continuar.")
+                .setCancelable(false)
+                .setPositiveButton("Ir a configuración", (dialog, which) -> {
+                    Intent intent = new Intent(android.provider.Settings.ACTION_NFC_SETTINGS);
+                    startActivity(intent);
+                })
+                .show();
+    }
+
+
     @Override
     public void onResume() {
         super.onResume();
+
         if (nfcAdapter != null) {
-            nfcAdapter.enableForegroundDispatch(requireActivity(), pendingIntent, null, null);
+            if (!nfcAdapter.isEnabled()) {
+                showNfcDisabledDialog();
+            } else {
+                nfcAdapter.enableForegroundDispatch(requireActivity(), pendingIntent, null, null);
+            }
         }
 
         if (getActivity() != null && getActivity().getIntent() != null) {
             handleNfcIntent(getActivity().getIntent());
         }
     }
+
 
     @Override
     public void onPause() {
