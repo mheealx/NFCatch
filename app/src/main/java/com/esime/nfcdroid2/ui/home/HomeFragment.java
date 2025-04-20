@@ -1,78 +1,102 @@
 package com.esime.nfcdroid2.ui.home;
 
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.net.Uri;
-import android.nfc.NdefMessage;
-import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
-import android.nfc.NfcManager;
 import android.nfc.Tag;
-import android.nfc.tech.Ndef;
-import android.nfc.tech.NdefFormatable;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Parcelable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ScrollView;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.esime.nfcdroid2.utils.NfcAHelper;
+import com.esime.nfcdroid2.utils.NfcBHelper;
+import com.esime.nfcdroid2.utils.NfcVHelper;
+import com.esime.nfcdroid2.utils.NfcIsoDepHelper;
+import com.esime.nfcdroid2.utils.NfcNdefHelper;
+import com.esime.nfcdroid2.utils.NfcMifareClassicHelper;
+import com.esime.nfcdroid2.utils.NfcMifareUltralightHelper;
+import com.esime.nfcdroid2.utils.NfcNdefFormatableHelper;
+import com.esime.nfcdroid2.utils.LogCallback;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.esime.nfcdroid2.databinding.FragmentHomeBinding;
+import com.esime.nfcdroid2.R;
+import com.esime.nfcdroid2.utils.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Locale;
+import java.util.*;
 
 public class HomeFragment extends Fragment {
 
-    private FragmentHomeBinding binding;
-    private TextView consoleTextView;
-    private Button saveButton;
-    private final StringBuilder logContent = new StringBuilder();
-
+    private static final String TAG = "NFC_LOG";
     private NfcAdapter nfcAdapter;
     private PendingIntent pendingIntent;
 
+    private TextView consoleTextView;
+    private ScrollView consoleScrollView;
+    private SearchView searchView;
+    private Button filterButton, saveButton;
+
+    private final StringBuilder fullLog = new StringBuilder();
+    private final List<String> allLogs = new ArrayList<>();
+    private final Set<String> selectedTechFilters = new HashSet<>();
+
+    private String currentQuery = "";
+
+    private final String[] techOptions = {
+            "Ndef", "MifareClassic", "MifareUltralight", "NfcA", "NfcB", "NfcV", "IsoDep", "NdefFormatable"
+    };
+
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View root = inflater.inflate(R.layout.fragment_home, container, false);
 
-        binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        consoleTextView = root.findViewById(R.id.consoleTextView);
+        consoleScrollView = root.findViewById(R.id.consoleScrollView);
+        searchView = root.findViewById(R.id.searchView);
+        filterButton = root.findViewById(R.id.filterButton);
+        saveButton = root.findViewById(R.id.saveButton);
 
-        consoleTextView = binding.consoleTextView;
-        saveButton = binding.saveButton;
-
-        logContent.append(formatLogLine("I", "NfcLog", "Consola NFC iniciada."));
-
-        nfcAdapter = NfcAdapter.getDefaultAdapter(getActivity());
+        nfcAdapter = NfcAdapter.getDefaultAdapter(requireContext());
         if (nfcAdapter == null) {
-            String msg = "NFC no está disponible en este dispositivo.";
-            consoleTextView.setText(msg);
-            logContent.append(formatLogLine("E", "NfcLog", msg));
+            appendLog("E", TAG, "La tecnología NFC no es compatible con este dispositivo.");
         }
 
-        pendingIntent = PendingIntent.getActivity(
-                requireActivity(),
-                0,
-                new Intent(requireActivity(), requireActivity().getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-                PendingIntent.FLAG_IMMUTABLE
-        );
+        Intent intent = new Intent(requireActivity(), requireActivity().getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        pendingIntent = PendingIntent.getActivity(requireContext(), 0, intent, PendingIntent.FLAG_MUTABLE);
 
-        saveButton.setOnClickListener(v -> {
-            guardarLogAutomaticamente();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                currentQuery = query;
+                applyFilters();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                currentQuery = newText;
+                applyFilters();
+                return true;
+            }
         });
 
+        filterButton.setOnClickListener(v -> showFilterDialog());
+        saveButton.setOnClickListener(v -> guardarLog());
+
+        appendLog("I", TAG, "El NFC está disponible, consola iniciada.");
         return root;
     }
 
@@ -80,7 +104,11 @@ public class HomeFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if (nfcAdapter != null) {
-            nfcAdapter.enableForegroundDispatch(getActivity(), pendingIntent, null, null);
+            nfcAdapter.enableForegroundDispatch(requireActivity(), pendingIntent, null, null);
+        }
+
+        if (getActivity() != null && getActivity().getIntent() != null) {
+            handleNfcIntent(getActivity().getIntent());
         }
     }
 
@@ -88,104 +116,175 @@ public class HomeFragment extends Fragment {
     public void onPause() {
         super.onPause();
         if (nfcAdapter != null) {
-            nfcAdapter.disableForegroundDispatch(getActivity());
+            nfcAdapter.disableForegroundDispatch(requireActivity());
         }
     }
 
     public void handleNfcIntent(Intent intent) {
-        String action = intent.getAction();
-        StringBuilder eventInfo = new StringBuilder();
-        eventInfo.append(formatLogLine("I", "NfcDispatcher", "Intent NFC recibido: " + action));
-
-        Parcelable[] rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-        if (rawMsgs != null) {
-            for (Parcelable rawMsg : rawMsgs) {
-                NdefMessage msg = (NdefMessage) rawMsg;
-                for (NdefRecord record : msg.getRecords()) {
-                    if (record.getTnf() == NdefRecord.TNF_WELL_KNOWN &&
-                            Arrays.equals(record.getType(), NdefRecord.RTD_TEXT)) {
-                        String text = parseTextRecord(record);
-                        eventInfo.append(formatLogLine("I", "NfcDispatcher", "Texto: " + text));
-                    }
-                }
-            }
-        } else {
-            eventInfo.append(formatLogLine("W", "NfcDispatcher", "No se encontraron mensajes NDEF."));
-        }
-
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
         if (tag != null) {
-            eventInfo.append(formatLogLine("I", "NfcDispatcher", "ID: " + bytesToHex(tag.getId())));
-            Ndef ndef = Ndef.get(tag);
-            if (ndef != null) {
-                NdefMessage cachedMsg = ndef.getCachedNdefMessage();
-                if (cachedMsg != null) {
-                    for (NdefRecord record : cachedMsg.getRecords()) {
-                        eventInfo.append(formatLogLine("I", "NDEF", "Payload: " + new String(record.getPayload())));
+            appendLog("D", TAG, "Tag detectado");
+            appendLog("D", TAG, "UID: " + bytesToHex(tag.getId()));
+            appendLog("D", TAG, "Techs: " + Arrays.toString(tag.getTechList()));
+
+            LogCallback logger = this::appendLog;
+
+            for (String tech : tag.getTechList()) {
+                switch (tech) {
+                    case "android.nfc.tech.Ndef":
+                        NfcNdefHelper.read(tag, logger);
+                        break;
+                    case "android.nfc.tech.NdefFormatable":
+                        NfcNdefFormatableHelper.read(tag, logger);
+                        break;
+                    case "android.nfc.tech.MifareClassic":
+                        NfcMifareClassicHelper.read(tag, logger);
+                        break;
+                    case "android.nfc.tech.MifareUltralight":
+                        NfcMifareUltralightHelper.read(tag, logger);
+                        break;
+                    case "android.nfc.tech.NfcA":
+                        NfcAHelper.read(tag, logger);
+                        break;
+                    case "android.nfc.tech.NfcB":
+                        NfcBHelper.read(tag, logger);
+                        break;
+                    case "android.nfc.tech.NfcV":
+                        NfcVHelper.read(tag, logger);
+                        break;
+                    case "android.nfc.tech.IsoDep":
+                        NfcIsoDepHelper.read(tag, logger);
+                        break;
+                }
+            }
+        }
+    }
+
+    private void appendLog(String level, String tag, String message) {
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault()).format(new Date());
+        int pid = android.os.Process.myPid();
+        int tid = android.os.Process.myTid();
+        String pkg = requireContext().getPackageName();
+
+        String formatted = String.format(Locale.getDefault(),
+                "%s %5d-%5d %-25s %-35s %-1s  %s",
+                timestamp, pid, tid, tag, pkg, level.toUpperCase(), message
+        );
+
+        Log.println(getAndroidLogLevel(level), tag, message);
+
+        allLogs.add(formatted);
+        fullLog.append(formatted).append("\n");
+
+        if (currentQuery.isEmpty() && selectedTechFilters.isEmpty()) {
+            consoleTextView.post(() -> {
+                String current = consoleTextView.getText().toString();
+                consoleTextView.setText(current + formatted + "\n");
+            });
+        } else {
+            applyFilters();
+        }
+    }
+
+    private int getAndroidLogLevel(String level) {
+        switch (level.toUpperCase()) {
+            case "V": return Log.VERBOSE;
+            case "D": return Log.DEBUG;
+            case "I": return Log.INFO;
+            case "W": return Log.WARN;
+            case "E": return Log.ERROR;
+            default: return Log.DEBUG;
+        }
+    }
+
+    private void applyFilters() {
+        List<String> finalLogs = new ArrayList<>();
+
+        if (selectedTechFilters.isEmpty() && currentQuery.isEmpty()) {
+            finalLogs.addAll(allLogs);
+        } else {
+            List<String> currentBlock = new ArrayList<>();
+            boolean blockHasSelectedTech = false;
+
+            for (String log : allLogs) {
+                if (log.contains("Tag detectado")) {
+                    if (!currentBlock.isEmpty() && blockHasSelectedTech) {
+                        finalLogs.addAll(currentBlock);
+                    }
+                    currentBlock = new ArrayList<>();
+                    blockHasSelectedTech = false;
+                }
+
+                currentBlock.add(log);
+
+                if (log.contains("Techs: [")) {
+                    for (String tech : selectedTechFilters) {
+                        if (log.contains(tech)) {
+                            blockHasSelectedTech = true;
+                            break;
+                        }
                     }
                 }
-            } else {
-                NdefFormatable formatable = NdefFormatable.get(tag);
-                if (formatable != null) {
-                    eventInfo.append(formatLogLine("I", "NdefFormatable", "La etiqueta es formateable a NDEF."));
-                } else {
-                    eventInfo.append(formatLogLine("W", "NFC", "La etiqueta no es NDEF ni formateable."));
+
+                for (String tech : selectedTechFilters) {
+                    if (log.contains(tech)) {
+                        blockHasSelectedTech = true;
+                    }
                 }
+
+                if (!currentQuery.isEmpty() && log.toLowerCase().contains(currentQuery.toLowerCase())) {
+                    blockHasSelectedTech = true;
+                }
+            }
+
+            if (!currentBlock.isEmpty() && blockHasSelectedTech) {
+                finalLogs.addAll(currentBlock);
             }
         }
 
-        logContent.append(eventInfo);
-        consoleTextView.append(eventInfo);
+        StringBuilder visibleLog = new StringBuilder("NFC:\n");
+        for (String log : finalLogs) {
+            visibleLog.append(log).append("\n");
+        }
+
+        consoleTextView.setText(visibleLog.toString());
+        consoleScrollView.post(() -> consoleScrollView.fullScroll(View.FOCUS_DOWN));
     }
 
-    private String formatLogLine(String level, String tag, String message) {
-        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
-                .format(new Date());
-        return String.format(
-                "%s  %-10s  %-12s  %s\n",
-                timestamp, level, tag, message
-        );
+    private void showFilterDialog() {
+        boolean[] checkedItems = new boolean[techOptions.length];
+        for (int i = 0; i < techOptions.length; i++) {
+            checkedItems[i] = selectedTechFilters.contains(techOptions[i]);
+        }
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Filtrar por tecnologías")
+                .setMultiChoiceItems(techOptions, checkedItems, (dialog, which, isChecked) -> {
+                    String tech = techOptions[which];
+                    if (isChecked) selectedTechFilters.add(tech);
+                    else selectedTechFilters.remove(tech);
+                })
+                .setPositiveButton("Aplicar", (dialog, which) -> applyFilters())
+                .setNegativeButton("Cancelar", null)
+                .show();
     }
 
-    private void guardarLogAutomaticamente() {
+    private void guardarLog() {
         try {
-            // Ruta base a la carpeta Documents/NFCDroid
             File documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-            File nfcdroidDir = new File(documentsDir, "NFCDroid");
+            File appDir = new File(documentsDir, "NFCDroid");
 
-            // Crear la carpeta si no existe
-            if (!nfcdroidDir.exists()) {
-                if (!nfcdroidDir.mkdirs()) {
-                    Toast.makeText(getActivity(), "No se pudo crear la carpeta NFCDroid.", Toast.LENGTH_LONG).show();
-                    return;
-                }
-            }
+            if (!appDir.exists()) appDir.mkdirs();
 
-            // Crear el nombre del archivo con la fecha y hora
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-            File logFile = new File(nfcdroidDir, "log_nfc_" + timeStamp + ".txt");
+            File file = new File(appDir, "log_nfc_" + timeStamp + ".txt");
 
-            // Escribir el log
-            try (FileOutputStream fos = new FileOutputStream(logFile)) {
-                fos.write(logContent.toString().getBytes());
-                Toast.makeText(getActivity(), "Log guardado en: Documents/NFCDroid", Toast.LENGTH_LONG).show();
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                fos.write(fullLog.toString().getBytes());
+                Toast.makeText(getContext(), "Log guardado en Documents/NFCDroid", Toast.LENGTH_LONG).show();
             }
-
         } catch (Exception e) {
-            Toast.makeText(getActivity(), "Error al guardar el log: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            e.printStackTrace();
-        }
-    }
-
-    private String parseTextRecord(NdefRecord record) {
-        try {
-            byte[] payload = record.getPayload();
-            String textEncoding = ((payload[0] & 0x80) == 0) ? "UTF-8" : "UTF-16";
-            int languageCodeLength = payload[0] & 0x3F;
-            return new String(payload, languageCodeLength + 1,
-                    payload.length - languageCodeLength - 1, textEncoding);
-        } catch (Exception e) {
-            return "Error al parsear texto: " + e.getMessage();
+            Toast.makeText(getContext(), "Error al guardar el log: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -195,11 +294,5 @@ public class HomeFragment extends Fragment {
             sb.append(String.format("%02X ", b));
         }
         return sb.toString().trim();
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
     }
 }
