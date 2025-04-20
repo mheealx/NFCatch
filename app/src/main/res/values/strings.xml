@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">NFCDroid</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">NFCDroid</string>
+    <string name="nav_header_subtitle">Supervisión de eventos NFC</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+
+    <string name="menu_home">Inicio</string>
+    <string name="menu_gallery">Historial</string>
+    <string name="menu_slideshow">Configuración</string>
+</resources>

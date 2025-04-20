@@ -1,0 +1,11 @@
+<resources xmlns:xl="http://schemas.android.com/apk/res/android">
+    <tech-list>
+        <xl:tech>android.nfc.tech.Ndef</xl:tech>
+    </tech-list>
+    <tech-list>
+        <xl:tech>android.nfc.tech.NfcA</xl:tech>
+    </tech-list>
+    <tech-list>
+        <xl:tech>android.nfc.tech.MifareClassic</xl:tech>
+    </tech-list>
+</resources>
