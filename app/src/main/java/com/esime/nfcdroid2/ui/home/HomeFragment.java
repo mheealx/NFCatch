@@ -202,6 +202,12 @@ public class HomeFragment extends Fragment {
 
         if (selectedTechFilters.isEmpty() && currentQuery.isEmpty()) {
             finalLogs.addAll(allLogs);
+        } else if (!currentQuery.isEmpty() && selectedTechFilters.isEmpty()) {
+            for (String log : allLogs) {
+                if (log.toLowerCase().contains(currentQuery.toLowerCase())) {
+                    finalLogs.add(log);
+                }
+            }
         } else {
             List<String> currentBlock = new ArrayList<>();
             boolean blockHasSelectedTech = false;
@@ -225,20 +231,21 @@ public class HomeFragment extends Fragment {
                         }
                     }
                 }
-
-                for (String tech : selectedTechFilters) {
-                    if (log.contains(tech)) {
-                        blockHasSelectedTech = true;
-                    }
-                }
-
-                if (!currentQuery.isEmpty() && log.toLowerCase().contains(currentQuery.toLowerCase())) {
-                    blockHasSelectedTech = true;
-                }
             }
 
             if (!currentBlock.isEmpty() && blockHasSelectedTech) {
                 finalLogs.addAll(currentBlock);
+            }
+
+            // Si también hay búsqueda activa, filtrar las líneas resultantes
+            if (!currentQuery.isEmpty()) {
+                List<String> filteredByQuery = new ArrayList<>();
+                for (String log : finalLogs) {
+                    if (log.toLowerCase().contains(currentQuery.toLowerCase())) {
+                        filteredByQuery.add(log);
+                    }
+                }
+                finalLogs = filteredByQuery;
             }
         }
 
