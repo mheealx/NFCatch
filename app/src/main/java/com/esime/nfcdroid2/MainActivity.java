@@ -3,11 +3,9 @@ package com.esime.nfcdroid2;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.View;
 
 import com.esime.nfcdroid2.ui.home.HomeFragment;
 import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -28,13 +26,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         setSupportActionBar(binding.appBarMain.toolbar);
-
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         DrawerLayout drawer = binding.drawerLayout;
         NavigationView navigationView = binding.navView;
@@ -47,6 +42,23 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
+
+        // 🔧 Ocultar título solo en GalleryFragment (Historial)
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            if (destination.getId() == R.id.nav_gallery || destination.getId() == R.id.nav_home || destination.getId() == R.id.nav_slideshow) {
+                getSupportActionBar().setTitle(""); // Quita "Historial"
+            } else {
+                getSupportActionBar().setTitle(destination.getLabel()); // Título normal en otros fragments
+            }
+        });
+
+        // ✅ Redirigir a GalleryFragment si viene desde notificación
+        if (getIntent().hasExtra("abrir_fragmento")) {
+            String destino = getIntent().getStringExtra("abrir_fragmento");
+            if ("historial".equals(destino)) {
+                navController.navigate(R.id.nav_gallery);
+            }
+        }
     }
 
     @Override

@@ -17,30 +17,31 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.esime.nfcdroid2.utils.NfcAHelper;
-import com.esime.nfcdroid2.utils.NfcBHelper;
-import com.esime.nfcdroid2.utils.NfcVHelper;
-import com.esime.nfcdroid2.utils.NfcIsoDepHelper;
-import com.esime.nfcdroid2.utils.NfcNdefHelper;
-import com.esime.nfcdroid2.utils.NfcMifareClassicHelper;
-import com.esime.nfcdroid2.utils.NfcMifareUltralightHelper;
-import com.esime.nfcdroid2.utils.NfcNdefFormatableHelper;
-import com.esime.nfcdroid2.utils.LogCallback;
-
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.esime.nfcdroid2.R;
-import com.esime.nfcdroid2.utils.*;
+import com.esime.nfcdroid2.services.NfcBackgroundService;
+import com.esime.nfcdroid2.utils.LogCallback;
+import com.esime.nfcdroid2.utils.LogRegistry;
+import com.esime.nfcdroid2.utils.NfcAHelper;
+import com.esime.nfcdroid2.utils.NfcBHelper;
+import com.esime.nfcdroid2.utils.NfcIsoDepHelper;
+import com.esime.nfcdroid2.utils.NfcMifareClassicHelper;
+import com.esime.nfcdroid2.utils.NfcMifareUltralightHelper;
+import com.esime.nfcdroid2.utils.NfcNdefFormatableHelper;
+import com.esime.nfcdroid2.utils.NfcNdefHelper;
+import com.esime.nfcdroid2.utils.NfcVHelper;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListener {
 
     private static final String TAG = "NFC_LOG";
+
     private NfcAdapter nfcAdapter;
     private PendingIntent pendingIntent;
 
@@ -49,11 +50,9 @@ public class HomeFragment extends Fragment {
     private SearchView searchView;
     private Button filterButton, saveButton, clearConsoleButton;
 
-
     private final StringBuilder fullLog = new StringBuilder();
     private final List<String> allLogs = new ArrayList<>();
     private final Set<String> selectedTechFilters = new HashSet<>();
-
     private String currentQuery = "";
 
     private final String[] techOptions = {
@@ -69,22 +68,15 @@ public class HomeFragment extends Fragment {
         searchView = root.findViewById(R.id.searchView);
         filterButton = root.findViewById(R.id.filterButton);
         saveButton = root.findViewById(R.id.saveButton);
-        clearConsoleButton = root.findViewById(R.id.clearConsoleButton);  // ✅ NUEVO
+        clearConsoleButton = root.findViewById(R.id.clearConsoleButton);
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(requireContext());
 
         if (nfcAdapter == null) {
-            searchView.setEnabled(false);
-            filterButton.setEnabled(false);
-            saveButton.setEnabled(false);
-            clearConsoleButton.setEnabled(false);  // ✅ NUEVO
-
+            disableUi();
             consoleTextView.setText("Este dispositivo no es compatible con NFC.");
             Toast.makeText(requireContext(), "La aplicación se cerrará automáticamente en 5 segundos.", Toast.LENGTH_LONG).show();
-
-            new android.os.Handler().postDelayed(() -> {
-                requireActivity().finishAffinity();
-            }, 5000);
+            new android.os.Handler().postDelayed(() -> requireActivity().finishAffinity(), 5000);
             return root;
         }
 
@@ -92,34 +84,31 @@ public class HomeFragment extends Fragment {
         pendingIntent = PendingIntent.getActivity(requireContext(), 0, intent, PendingIntent.FLAG_MUTABLE);
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                currentQuery = query;
-                applyFilters();
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                currentQuery = newText;
-                applyFilters();
-                return true;
-            }
+            @Override public boolean onQueryTextSubmit(String query) { currentQuery = query; applyFilters(); return true; }
+            @Override public boolean onQueryTextChange(String newText) { currentQuery = newText; applyFilters(); return true; }
         });
 
         filterButton.setOnClickListener(v -> showFilterDialog());
         saveButton.setOnClickListener(v -> guardarLog());
-
-        clearConsoleButton.setOnClickListener(v -> {
-            fullLog.setLength(0);
-            allLogs.clear();
-            currentQuery = "";
-            selectedTechFilters.clear();
-            consoleTextView.setText("NFC:/\n");
-            Toast.makeText(requireContext(), "Consola reiniciada", Toast.LENGTH_SHORT).show();
-        });
+        clearConsoleButton.setOnClickListener(v -> clearConsole());
 
         return root;
+    }
+
+    private void disableUi() {
+        searchView.setEnabled(false);
+        filterButton.setEnabled(false);
+        saveButton.setEnabled(false);
+        clearConsoleButton.setEnabled(false);
+    }
+
+    private void clearConsole() {
+        fullLog.setLength(0);
+        allLogs.clear();
+        currentQuery = "";
+        selectedTechFilters.clear();
+        consoleTextView.setText("NFC:/\n");
+        Toast.makeText(requireContext(), "Consola reiniciada", Toast.LENGTH_SHORT).show();
     }
 
     private void showNfcDisabledDialog() {
@@ -130,10 +119,8 @@ public class HomeFragment extends Fragment {
                 .setPositiveButton("Ir a configuración", (dialog, which) -> {
                     Intent intent = new Intent(android.provider.Settings.ACTION_NFC_SETTINGS);
                     startActivity(intent);
-                })
-                .show();
+                }).show();
     }
-
 
     @Override
     public void onResume() {
@@ -147,23 +134,46 @@ public class HomeFragment extends Fragment {
             }
         }
 
+        LogRegistry.setListener(this);
+        for (String linea : LogRegistry.getLogEvents()) {
+            allLogs.add(linea);
+            fullLog.append(linea).append("\n");
+        }
+        applyFilters();
+
         if (getActivity() != null && getActivity().getIntent() != null) {
             handleNfcIntent(getActivity().getIntent());
         }
     }
 
-
     @Override
     public void onPause() {
         super.onPause();
-        if (nfcAdapter != null) {
-            nfcAdapter.disableForegroundDispatch(requireActivity());
-        }
+        if (nfcAdapter != null) nfcAdapter.disableForegroundDispatch(requireActivity());
+        LogRegistry.removeListener();
+    }
+
+    @Override
+    public void onLogUpdated(String newLog) {
+        allLogs.add(newLog);
+        fullLog.append(newLog).append("\n");
+
+        requireActivity().runOnUiThread(() -> {
+            if (currentQuery.isEmpty() && selectedTechFilters.isEmpty()) {
+                String current = consoleTextView.getText().toString();
+                consoleTextView.setText(current + newLog + "\n");
+                consoleScrollView.post(() -> consoleScrollView.fullScroll(View.FOCUS_DOWN));
+            } else {
+                applyFilters();
+            }
+        });
     }
 
     public void handleNfcIntent(Intent intent) {
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
         if (tag != null) {
+            NfcBackgroundService.marcarLecturaNfc(); // ✅ Evitar falso positivo de pantalla apagada
+
             appendLog("D", TAG, "Tag detectado");
             appendLog("D", TAG, "UID: " + bytesToHex(tag.getId()));
             appendLog("D", TAG, "Techs: " + Arrays.toString(tag.getTechList()));
@@ -172,30 +182,14 @@ public class HomeFragment extends Fragment {
 
             for (String tech : tag.getTechList()) {
                 switch (tech) {
-                    case "android.nfc.tech.Ndef":
-                        NfcNdefHelper.read(tag, logger);
-                        break;
-                    case "android.nfc.tech.NdefFormatable":
-                        NfcNdefFormatableHelper.read(tag, logger);
-                        break;
-                    case "android.nfc.tech.MifareClassic":
-                        NfcMifareClassicHelper.read(tag, logger);
-                        break;
-                    case "android.nfc.tech.MifareUltralight":
-                        NfcMifareUltralightHelper.read(tag, logger);
-                        break;
-                    case "android.nfc.tech.NfcA":
-                        NfcAHelper.read(tag, logger);
-                        break;
-                    case "android.nfc.tech.NfcB":
-                        NfcBHelper.read(tag, logger);
-                        break;
-                    case "android.nfc.tech.NfcV":
-                        NfcVHelper.read(tag, logger);
-                        break;
-                    case "android.nfc.tech.IsoDep":
-                        NfcIsoDepHelper.read(tag, logger);
-                        break;
+                    case "android.nfc.tech.Ndef": NfcNdefHelper.read(tag, logger); break;
+                    case "android.nfc.tech.NdefFormatable": NfcNdefFormatableHelper.read(tag, logger); break;
+                    case "android.nfc.tech.MifareClassic": NfcMifareClassicHelper.read(tag, logger); break;
+                    case "android.nfc.tech.MifareUltralight": NfcMifareUltralightHelper.read(tag, logger); break;
+                    case "android.nfc.tech.NfcA": NfcAHelper.read(tag, logger); break;
+                    case "android.nfc.tech.NfcB": NfcBHelper.read(tag, logger); break;
+                    case "android.nfc.tech.NfcV": NfcVHelper.read(tag, logger); break;
+                    case "android.nfc.tech.IsoDep": NfcIsoDepHelper.read(tag, logger); break;
                 }
             }
         }
@@ -213,7 +207,6 @@ public class HomeFragment extends Fragment {
         );
 
         Log.println(getAndroidLogLevel(level), tag, message);
-
         allLogs.add(formatted);
         fullLog.append(formatted).append("\n");
 
@@ -241,59 +234,14 @@ public class HomeFragment extends Fragment {
     private void applyFilters() {
         List<String> finalLogs = new ArrayList<>();
 
-        if (selectedTechFilters.isEmpty() && currentQuery.isEmpty()) {
-            finalLogs.addAll(allLogs);
-        } else if (!currentQuery.isEmpty() && selectedTechFilters.isEmpty()) {
-            for (String log : allLogs) {
-                if (log.toLowerCase().contains(currentQuery.toLowerCase())) {
-                    finalLogs.add(log);
-                }
-            }
-        } else {
-            List<String> currentBlock = new ArrayList<>();
-            boolean blockHasSelectedTech = false;
-
-            for (String log : allLogs) {
-                if (log.contains("Tag detectado")) {
-                    if (!currentBlock.isEmpty() && blockHasSelectedTech) {
-                        finalLogs.addAll(currentBlock);
-                    }
-                    currentBlock = new ArrayList<>();
-                    blockHasSelectedTech = false;
-                }
-
-                currentBlock.add(log);
-
-                if (log.contains("Techs: [")) {
-                    for (String tech : selectedTechFilters) {
-                        if (log.contains(tech)) {
-                            blockHasSelectedTech = true;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (!currentBlock.isEmpty() && blockHasSelectedTech) {
-                finalLogs.addAll(currentBlock);
-            }
-
-            // Si también hay búsqueda activa, filtrar las líneas resultantes
-            if (!currentQuery.isEmpty()) {
-                List<String> filteredByQuery = new ArrayList<>();
-                for (String log : finalLogs) {
-                    if (log.toLowerCase().contains(currentQuery.toLowerCase())) {
-                        filteredByQuery.add(log);
-                    }
-                }
-                finalLogs = filteredByQuery;
-            }
+        for (String log : allLogs) {
+            boolean matchesQuery = currentQuery.isEmpty() || log.toLowerCase().contains(currentQuery.toLowerCase());
+            boolean matchesFilter = selectedTechFilters.isEmpty() || selectedTechFilters.stream().anyMatch(log::contains);
+            if (matchesQuery && matchesFilter) finalLogs.add(log);
         }
 
         StringBuilder visibleLog = new StringBuilder("NFC:\n");
-        for (String log : finalLogs) {
-            visibleLog.append(log).append("\n");
-        }
+        for (String log : finalLogs) visibleLog.append(log).append("\n");
 
         consoleTextView.setText(visibleLog.toString());
         consoleScrollView.post(() -> consoleScrollView.fullScroll(View.FOCUS_DOWN));
@@ -301,35 +249,28 @@ public class HomeFragment extends Fragment {
 
     private void showFilterDialog() {
         boolean[] checkedItems = new boolean[techOptions.length];
-        for (int i = 0; i < techOptions.length; i++) {
+        for (int i = 0; i < techOptions.length; i++)
             checkedItems[i] = selectedTechFilters.contains(techOptions[i]);
-        }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Filtrar por tecnologías");
-
-        builder.setMultiChoiceItems(techOptions, checkedItems, (dialog, which, isChecked) -> {
-            String tech = techOptions[which];
-            if (isChecked) selectedTechFilters.add(tech);
-            else selectedTechFilters.remove(tech);
-        });
-
-        builder.setPositiveButton("Aplicar", (dialog, which) -> applyFilters());
-        builder.setNegativeButton("Cancelar", null);
-        builder.setNeutralButton("Deseleccionar todo", (dialog, which) -> {
-            selectedTechFilters.clear();
-            applyFilters();
-            Toast.makeText(requireContext(), "Filtros retirados", Toast.LENGTH_SHORT).show();
-        });
-
-        builder.show();
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Filtrar por tecnologías")
+                .setMultiChoiceItems(techOptions, checkedItems, (dialog, which, isChecked) -> {
+                    String tech = techOptions[which];
+                    if (isChecked) selectedTechFilters.add(tech); else selectedTechFilters.remove(tech);
+                })
+                .setPositiveButton("Aplicar", (dialog, which) -> applyFilters())
+                .setNegativeButton("Cancelar", null)
+                .setNeutralButton("Deseleccionar todo", (dialog, which) -> {
+                    selectedTechFilters.clear();
+                    applyFilters();
+                    Toast.makeText(requireContext(), "Filtros retirados", Toast.LENGTH_SHORT).show();
+                }).show();
     }
 
     private void guardarLog() {
         try {
             File documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
             File appDir = new File(documentsDir, "NFCDroid");
-
             if (!appDir.exists()) appDir.mkdirs();
 
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
@@ -346,9 +287,7 @@ public class HomeFragment extends Fragment {
 
     private String bytesToHex(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02X ", b));
-        }
+        for (byte b : bytes) sb.append(String.format("%02X ", b));
         return sb.toString().trim();
     }
 }

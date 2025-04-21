@@ -7,40 +7,36 @@ import android.nfc.Tag;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.esime.nfcdroid2.services.NfcBackgroundService;
+
 public class NfcReaderActivity extends Activity {
+
+    private static final String TAG = "NfcReader";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         handleIntent(getIntent());
-        finish();
+        finish(); // No muestra UI
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         handleIntent(intent);
-        finish();
+        finish(); // Igual cerrar
     }
 
     private void handleIntent(Intent intent) {
-        if (intent == null || intent.getAction() == null) {
-            Log.e("NfcReader", "Intent NFC nulo o sin acción.");
-            return;
-        }
+        if (intent == null || intent.getAction() == null) return;
 
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-        if (tag == null) {
-            Log.e("NfcReader", "No se pudo obtener el Tag del intent.");
-            return;
+        if (tag != null) {
+            Log.i(TAG, "Tag recibido, enviando al servicio en segundo plano...");
+            Intent serviceIntent = new Intent(this, NfcBackgroundService.class);
+            serviceIntent.setAction("com.esime.nfcdroid2.ACTION_HANDLE_TAG");
+            serviceIntent.putExtra(NfcAdapter.EXTRA_TAG, tag);
+            startService(serviceIntent); // Sin abrir UI
         }
-
-        Log.i("NfcReader", "Tag detectado, redirigiendo a MainActivity...");
-
-        // Redirige el intent con el tag a MainActivity
-        Intent redirect = new Intent(this, MainActivity.class);
-        redirect.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        redirect.putExtra(NfcAdapter.EXTRA_TAG, tag);
-        startActivity(redirect);
     }
 }
