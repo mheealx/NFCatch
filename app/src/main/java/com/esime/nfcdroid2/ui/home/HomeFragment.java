@@ -47,7 +47,8 @@ public class HomeFragment extends Fragment {
     private TextView consoleTextView;
     private ScrollView consoleScrollView;
     private SearchView searchView;
-    private Button filterButton, saveButton;
+    private Button filterButton, saveButton, clearConsoleButton;
+
 
     private final StringBuilder fullLog = new StringBuilder();
     private final List<String> allLogs = new ArrayList<>();
@@ -68,6 +69,7 @@ public class HomeFragment extends Fragment {
         searchView = root.findViewById(R.id.searchView);
         filterButton = root.findViewById(R.id.filterButton);
         saveButton = root.findViewById(R.id.saveButton);
+        clearConsoleButton = root.findViewById(R.id.clearConsoleButton);  // ✅ NUEVO
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(requireContext());
 
@@ -75,6 +77,7 @@ public class HomeFragment extends Fragment {
             searchView.setEnabled(false);
             filterButton.setEnabled(false);
             saveButton.setEnabled(false);
+            clearConsoleButton.setEnabled(false);  // ✅ NUEVO
 
             consoleTextView.setText("Este dispositivo no es compatible con NFC.");
             Toast.makeText(requireContext(), "La aplicación se cerrará automáticamente en 5 segundos.", Toast.LENGTH_LONG).show();
@@ -107,7 +110,15 @@ public class HomeFragment extends Fragment {
         filterButton.setOnClickListener(v -> showFilterDialog());
         saveButton.setOnClickListener(v -> guardarLog());
 
-        appendLog("I", TAG, "El NFC está disponible, consola iniciada.");
+        clearConsoleButton.setOnClickListener(v -> {
+            fullLog.setLength(0);
+            allLogs.clear();
+            currentQuery = "";
+            selectedTechFilters.clear();
+            consoleTextView.setText("NFC:/\n");
+            Toast.makeText(requireContext(), "Consola reiniciada", Toast.LENGTH_SHORT).show();
+        });
+
         return root;
     }
 
@@ -294,16 +305,24 @@ public class HomeFragment extends Fragment {
             checkedItems[i] = selectedTechFilters.contains(techOptions[i]);
         }
 
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Filtrar por tecnologías")
-                .setMultiChoiceItems(techOptions, checkedItems, (dialog, which, isChecked) -> {
-                    String tech = techOptions[which];
-                    if (isChecked) selectedTechFilters.add(tech);
-                    else selectedTechFilters.remove(tech);
-                })
-                .setPositiveButton("Aplicar", (dialog, which) -> applyFilters())
-                .setNegativeButton("Cancelar", null)
-                .show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Filtrar por tecnologías");
+
+        builder.setMultiChoiceItems(techOptions, checkedItems, (dialog, which, isChecked) -> {
+            String tech = techOptions[which];
+            if (isChecked) selectedTechFilters.add(tech);
+            else selectedTechFilters.remove(tech);
+        });
+
+        builder.setPositiveButton("Aplicar", (dialog, which) -> applyFilters());
+        builder.setNegativeButton("Cancelar", null);
+        builder.setNeutralButton("Deseleccionar todo", (dialog, which) -> {
+            selectedTechFilters.clear();
+            applyFilters();
+            Toast.makeText(requireContext(), "Filtros retirados", Toast.LENGTH_SHORT).show();
+        });
+
+        builder.show();
     }
 
     private void guardarLog() {
