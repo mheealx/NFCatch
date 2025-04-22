@@ -15,11 +15,23 @@
         android:id="@+id/nav_gallery"
         android:name="com.esime.nfcdroid2.ui.historial.HistorialFragment"
         android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
+        tools:layout="@layout/fragment_historial" />
 
     <fragment
         android:id="@+id/nav_slideshow"
         android:name="com.esime.nfcdroid2.ui.configuration.ConfigFragment"
         android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
+        tools:layout="@layout/fragment_config" />
+
+    <fragment
+        android:id="@+id/nav_informacion"
+        android:name="com.esime.nfcdroid2.ui.informacion.InfoFragment"
+        android:label="@string/menu_informacion"
+        tools:layout="@layout/fragment_informacion" />
+
+    <fragment
+        android:id="@+id/nav_acerca_de"
+        android:name="com.esime.nfcdroid2.ui.acercade.AcercaFragment"
+        android:label="@string/menu_acerca_de"
+        tools:layout="@layout/fragment_acercade" />
 </navigation>

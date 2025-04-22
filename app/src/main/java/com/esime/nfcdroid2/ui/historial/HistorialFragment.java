@@ -13,7 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.esime.nfcdroid2.databinding.FragmentGalleryBinding;
+import com.esime.nfcdroid2.databinding.FragmentHistorialBinding;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -21,14 +21,14 @@ import java.util.*;
 
 public class HistorialFragment extends Fragment {
 
-    private FragmentGalleryBinding binding;
+    private FragmentHistorialBinding binding;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yy", Locale.getDefault());
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        binding = FragmentGalleryBinding.inflate(inflater, container, false);
+        binding = FragmentHistorialBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
         binding.logRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));

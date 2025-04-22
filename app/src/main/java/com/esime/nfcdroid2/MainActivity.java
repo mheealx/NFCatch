@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationView navigationView = binding.navView;
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow)
+                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow, R.id.nav_informacion, R.id.nav_acerca_de)
                 .setOpenableLayout(drawer)
                 .build();
 
@@ -45,10 +45,8 @@ public class MainActivity extends AppCompatActivity {
 
         // 🔧 Ocultar título solo en GalleryFragment (Historial)
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-            if (destination.getId() == R.id.nav_gallery || destination.getId() == R.id.nav_home || destination.getId() == R.id.nav_slideshow) {
+            if (destination.getId() == R.id.nav_gallery || destination.getId() == R.id.nav_home || destination.getId() == R.id.nav_slideshow || destination.getId() == R.id.nav_informacion || destination.getId() == R.id.nav_acerca_de) {
                 getSupportActionBar().setTitle(""); // Quita "Historial"
-            } else {
-                getSupportActionBar().setTitle(destination.getLabel()); // Título normal en otros fragments
             }
         });
     }
