@@ -1,4 +1,4 @@
-package com.esime.nfcdroid2.ui.slideshow;
+package com.esime.nfcdroid2.ui.configuration;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

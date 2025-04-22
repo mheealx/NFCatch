@@ -25,7 +25,7 @@
         android:theme="@style/Theme.NFCDroid"
         tools:targetApi="31">
 
-        <!-- 🚀 Splash de inicio -->
+        <!-- Splash inicial solo aparecerá la primera vez que se inicie  -->
         <activity
             android:name=".SplashActivity"
             android:exported="true"
@@ -36,7 +36,7 @@
             </intent-filter>
         </activity>
 
-        <!-- 🎯 Actividad principal con navegación -->
+        <!-- Actividad principal -->
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
@@ -45,7 +45,7 @@
             android:launchMode="singleTop"
             android:exported="true" />
 
-        <!-- 📡 NFC READER ACTIVITY -->
+        <!-- Actividad que permite que la app funcione con las notificaciones y permiso al leer tags con datos -->
         <activity
             android:name=".NfcReaderActivity"
             android:launchMode="singleTask"
@@ -73,7 +73,7 @@
                 android:resource="@xml/nfc_tech_filter" />
         </activity>
 
-        <!-- 🧾 Compartir archivos: PDF / TXT -->
+        <!-- Apertura de archivo TXT -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -84,16 +84,16 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- 🔄 Servicio en segundo plano -->
+        <!-- Servicio en segundo plano -->
         <service
-            android:name=".services.NfcBackgroundService"
+            android:name=".services.ServicioSegundoPlano"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
 
-        <!-- 🚨 Auto-arranque tras reinicio -->
+        <!-- Auto-arranque tras reinicio -->
         <receiver
-            android:name=".services.BootReceiver"
+            android:name=".services.RecibidorEncendido"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

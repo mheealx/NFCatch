@@ -1,17 +1,13 @@
-package com.esime.nfcdroid2.ui.gallery;
+package com.esime.nfcdroid2.ui.historial;
 
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.view.*;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.esime.nfcdroid2.R;
-
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;

@@ -10,7 +10,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.Settings;
-import android.util.TypedValue;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -20,7 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.esime.nfcdroid2.services.NfcBackgroundService;
+import com.esime.nfcdroid2.services.ServicioSegundoPlano;
 import com.google.android.material.button.MaterialButton;
 
 public class SplashActivity extends AppCompatActivity {
@@ -99,7 +98,7 @@ public class SplashActivity extends AppCompatActivity {
 
     private void lanzarMainActivity() {
         // Inicia el servicio en segundo plano
-        Intent serviceIntent = new Intent(this, NfcBackgroundService.class);
+        Intent serviceIntent = new Intent(this, ServicioSegundoPlano.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(serviceIntent);
         } else {

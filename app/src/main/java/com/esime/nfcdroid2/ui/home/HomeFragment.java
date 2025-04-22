@@ -16,12 +16,10 @@ import android.widget.ScrollView;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-
 import com.esime.nfcdroid2.R;
-import com.esime.nfcdroid2.services.NfcBackgroundService;
+import com.esime.nfcdroid2.services.ServicioSegundoPlano;
 import com.esime.nfcdroid2.utils.LogCallback;
 import com.esime.nfcdroid2.utils.LogRegistry;
 import com.esime.nfcdroid2.utils.NfcAHelper;
@@ -32,7 +30,6 @@ import com.esime.nfcdroid2.utils.NfcMifareUltralightHelper;
 import com.esime.nfcdroid2.utils.NfcNdefFormatableHelper;
 import com.esime.nfcdroid2.utils.NfcNdefHelper;
 import com.esime.nfcdroid2.utils.NfcVHelper;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
@@ -41,20 +38,16 @@ import java.util.*;
 public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListener {
 
     private static final String TAG = "NFC_LOG";
-
     private NfcAdapter nfcAdapter;
     private PendingIntent pendingIntent;
-
     private TextView consoleTextView;
     private ScrollView consoleScrollView;
     private SearchView searchView;
     private Button filterButton, saveButton, clearConsoleButton;
-
     private final StringBuilder fullLog = new StringBuilder();
     private final List<String> allLogs = new ArrayList<>();
     private final Set<String> selectedTechFilters = new HashSet<>();
     private String currentQuery = "";
-
     private final String[] techOptions = {
             "Ndef", "MifareClassic", "MifareUltralight", "NfcA", "NfcB", "NfcV", "IsoDep", "NdefFormatable"
     };
@@ -101,34 +94,6 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         return root;
     }
 
-    private void disableUi() {
-        searchView.setEnabled(false);
-        filterButton.setEnabled(false);
-        saveButton.setEnabled(false);
-        clearConsoleButton.setEnabled(false);
-    }
-
-    private void clearConsole() {
-        fullLog.setLength(0);
-        allLogs.clear();
-        currentQuery = "";
-        selectedTechFilters.clear();
-        consoleTextView.setText("NFC:/\n");
-        LogRegistry.clear();
-        Toast.makeText(requireContext(), "Consola reiniciada", Toast.LENGTH_SHORT).show();
-    }
-
-    private void showNfcDisabledDialog() {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("NFC DESACTIVADO")
-                .setMessage("El dispositivo tiene el chip NFC APAGADO.\nPor favor, enciéndalo para continuar.")
-                .setCancelable(false)
-                .setPositiveButton("Ir a configuración", (dialog, which) -> {
-                    Intent intent = new Intent(android.provider.Settings.ACTION_NFC_SETTINGS);
-                    startActivity(intent);
-                }).show();
-    }
-
     @Override
     public void onResume() {
         super.onResume();
@@ -160,6 +125,34 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         LogRegistry.removeListener();
     }
 
+    private void disableUi() {
+        searchView.setEnabled(false);
+        filterButton.setEnabled(false);
+        saveButton.setEnabled(false);
+        clearConsoleButton.setEnabled(false);
+    }
+
+    private void clearConsole() {
+        fullLog.setLength(0);
+        allLogs.clear();
+        currentQuery = "";
+        selectedTechFilters.clear();
+        consoleTextView.setText("NFC:/\n");
+        LogRegistry.clear();
+        Toast.makeText(requireContext(), "Consola reiniciada", Toast.LENGTH_SHORT).show();
+    }
+
+    private void showNfcDisabledDialog() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("NFC DESACTIVADO")
+                .setMessage("El dispositivo tiene el chip NFC APAGADO.\nPor favor, enciéndalo para continuar.")
+                .setCancelable(false)
+                .setPositiveButton("Ir a configuración", (dialog, which) -> {
+                    Intent intent = new Intent(android.provider.Settings.ACTION_NFC_SETTINGS);
+                    startActivity(intent);
+                }).show();
+    }
+
     @Override
     public void onLogUpdated(String newLog) {
         allLogs.add(newLog);
@@ -179,7 +172,7 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
     public void handleNfcIntent(Intent intent) {
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
         if (tag != null) {
-            NfcBackgroundService.marcarLecturaNfc(); // ✅ Evitar falso positivo de pantalla apagada
+            ServicioSegundoPlano.marcarLecturaNfc(); // ✅ Evitar falso positivo de pantalla apagada
 
             appendLog("D", TAG, "Tag detectado");
             appendLog("D", TAG, "UID: " + bytesToHex(tag.getId()));
@@ -297,4 +290,5 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         for (byte b : bytes) sb.append(String.format("%02X ", b));
         return sb.toString().trim();
     }
+
 }

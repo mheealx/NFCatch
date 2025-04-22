@@ -1,4 +1,4 @@
-package com.esime.nfcdroid2.ui.slideshow;
+package com.esime.nfcdroid2.ui.configuration;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -12,7 +12,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.esime.nfcdroid2.databinding.FragmentSlideshowBinding;
 
-public class SlideshowFragment extends Fragment {
+public class ConfigFragment extends Fragment {
 
     private FragmentSlideshowBinding binding;
 

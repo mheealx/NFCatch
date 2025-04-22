@@ -12,7 +12,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioAttributes;
-import android.net.Uri;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.os.Build;
@@ -33,7 +32,7 @@ import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class NfcBackgroundService extends Service {
+public class ServicioSegundoPlano extends Service {
 
     private static final String CHANNEL_ID = "nfc_background_channel";
     private static final String NFC_EVENT_CHANNEL_ID = "nfc_event_channel";
@@ -59,7 +58,7 @@ public class NfcBackgroundService extends Service {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("NFCDroid activo")
                 .setContentText("Escuchando etiquetas NFC en segundo plano")
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.mipmap.ic_launcher_round)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true)
                 .build();

@@ -13,13 +13,13 @@
 
     <fragment
         android:id="@+id/nav_gallery"
-        android:name="com.esime.nfcdroid2.ui.gallery.GalleryFragment"
+        android:name="com.esime.nfcdroid2.ui.historial.HistorialFragment"
         android:label="@string/menu_gallery"
         tools:layout="@layout/fragment_gallery" />
 
     <fragment
         android:id="@+id/nav_slideshow"
-        android:name="com.esime.nfcdroid2.ui.slideshow.SlideshowFragment"
+        android:name="com.esime.nfcdroid2.ui.configuration.ConfigFragment"
         android:label="@string/menu_slideshow"
         tools:layout="@layout/fragment_slideshow" />
 </navigation>

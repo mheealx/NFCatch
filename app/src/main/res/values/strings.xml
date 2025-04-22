@@ -10,4 +10,6 @@
     <string name="menu_home">Inicio</string>
     <string name="menu_gallery">Historial</string>
     <string name="menu_slideshow">Configuración</string>
+    <string name="menu_informacion">Información del teléfono</string>
+    <string name="menu_acerca_de">Acerca de</string>
 </resources>

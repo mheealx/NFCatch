@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.util.Log;
 
-public class ScreenStateReceiver extends BroadcastReceiver {
+public class ServicioEstadoPantalla extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {

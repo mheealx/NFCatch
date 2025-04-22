@@ -1,4 +1,4 @@
-package com.esime.nfcdroid2.ui.gallery;
+package com.esime.nfcdroid2.ui.historial;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
@@ -19,11 +19,10 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class GalleryFragment extends Fragment {
+public class HistorialFragment extends Fragment {
 
     private FragmentGalleryBinding binding;
-
-     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yy", Locale.getDefault());
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yy", Locale.getDefault());
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
