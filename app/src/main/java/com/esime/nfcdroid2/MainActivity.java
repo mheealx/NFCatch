@@ -51,14 +51,6 @@ public class MainActivity extends AppCompatActivity {
                 getSupportActionBar().setTitle(destination.getLabel()); // Título normal en otros fragments
             }
         });
-
-        // ✅ Redirigir a GalleryFragment si viene desde notificación
-        if (getIntent().hasExtra("abrir_fragmento")) {
-            String destino = getIntent().getStringExtra("abrir_fragmento");
-            if ("historial".equals(destino)) {
-                navController.navigate(R.id.nav_gallery);
-            }
-        }
     }
 
     @Override
@@ -90,4 +82,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+
 }

@@ -7,6 +7,9 @@ public class LogRegistry {
     private static final List<String> logEvents = new ArrayList<>();
     private static LogUpdateListener listener;
 
+    private static String ultimoUid = "";
+    private static long ultimoTimestamp = 0;
+
     public interface LogUpdateListener {
         void onLogUpdated(String newLog);
     }
@@ -32,5 +35,16 @@ public class LogRegistry {
 
     public static void removeListener() {
         listener = null;
+    }
+
+    // ✅ Prevención de lecturas duplicadas por UID y tiempo
+    public static boolean yaFueLeido(String uid) {
+        long ahora = System.currentTimeMillis();
+        boolean reciente = uid.equals(ultimoUid) && (ahora - ultimoTimestamp < 2000); // 2 segundos
+        if (!reciente) {
+            ultimoUid = uid;
+            ultimoTimestamp = ahora;
+        }
+        return reciente;
     }
 }

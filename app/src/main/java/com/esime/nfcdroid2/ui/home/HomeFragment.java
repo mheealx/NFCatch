@@ -114,6 +114,7 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         currentQuery = "";
         selectedTechFilters.clear();
         consoleTextView.setText("NFC:/\n");
+        LogRegistry.clear();
         Toast.makeText(requireContext(), "Consola reiniciada", Toast.LENGTH_SHORT).show();
     }
 
