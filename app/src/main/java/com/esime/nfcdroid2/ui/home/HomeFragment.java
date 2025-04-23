@@ -218,14 +218,8 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         allLogs.add(formatted);
         fullLog.append(formatted).append("\n");
 
-        if (currentQuery.isEmpty() && selectedTechFilters.isEmpty()) {
-            consoleTextView.post(() -> {
-                String current = consoleTextView.getText().toString();
-                consoleTextView.setText(current + formatted + "\n");
-            });
-        } else {
-            applyFilters();
-        }
+        applyFilters();
+
     }
 
     private int getAndroidLogLevel(String level) {

@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 
 import com.esime.nfcdroid2.R;
 import com.esime.nfcdroid2.ui.informacion.componentes.DeviceNames;
+import com.esime.nfcdroid2.ui.informacion.componentes.InfoAdapter;
 import com.esime.nfcdroid2.ui.informacion.componentes.NfcChipIdentifier;
 
 import java.util.ArrayList;
@@ -60,8 +61,14 @@ public class InfoFragment extends Fragment {
             titles.add("Número de compilación");
             values.add(Build.DISPLAY);
 
-            // 5. Modelo del chip NFC
-            String chipName = NfcChipIdentifier.detect();
+            // 4. NFC disponible
+            NfcAdapter adapter = NfcAdapter.getDefaultAdapter(context);
+            boolean hasNfc = adapter != null;
+            titles.add("¿Cuenta con NFC?");
+            values.add(hasNfc ? "Sí" : "No");
+
+            // 5. Modelo del chip
+            String chipName = hasNfc ? NfcChipIdentifier.detect() : "NFC no disponible";
             titles.add("Modelo del chip NFC");
             values.add(chipName != null && !chipName.isEmpty() ? chipName : "Desconocido");
 

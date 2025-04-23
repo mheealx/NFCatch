@@ -1,4 +1,4 @@
-package com.esime.nfcdroid2.ui.informacion;
+package com.esime.nfcdroid2.ui.informacion.componentes;
 
 import android.content.Context;
 import android.view.LayoutInflater;
