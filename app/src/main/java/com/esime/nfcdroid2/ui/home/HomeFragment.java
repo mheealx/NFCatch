@@ -68,15 +68,23 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         if (nfcAdapter == null) {
             disableUi();
 
-            // Esperamos a que la vista esté montada antes de escribir en el TextView
             root.post(() -> consoleTextView.setText("Este dispositivo no es compatible con NFC."));
-
             Toast.makeText(requireContext(), "La aplicación se cerrará automáticamente en 5 segundos.", Toast.LENGTH_LONG).show();
 
-            new android.os.Handler().postDelayed(() -> requireActivity().finishAffinity(), 5000);
+            new android.os.Handler().postDelayed(() -> {
+                // Detener el servicio en segundo plano
+                Intent stopIntent = new Intent(requireContext(), ServicioSegundoPlano.class);
+                requireContext().stopService(stopIntent);
+
+                // Finalizar la actividad y el proceso
+                requireActivity().finishAffinity();
+                android.os.Process.killProcess(android.os.Process.myPid());
+                System.exit(0);
+            }, 5000);
 
             return root;
         }
+
 
 
         Intent intent = new Intent(requireActivity(), requireActivity().getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);

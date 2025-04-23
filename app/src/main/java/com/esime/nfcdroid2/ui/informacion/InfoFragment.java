@@ -60,16 +60,11 @@ public class InfoFragment extends Fragment {
             titles.add("Número de compilación");
             values.add(Build.DISPLAY);
 
-            // 4. NFC disponible
-            NfcAdapter adapter = NfcAdapter.getDefaultAdapter(context);
-            boolean hasNfc = adapter != null;
-            titles.add("¿Cuenta con NFC?");
-            values.add(hasNfc ? "Yes" : "No");
-
-            // 5. Modelo del chip
-            String chipName = hasNfc ? NfcChipIdentifier.detect() : "NFC no disponible";
+            // 5. Modelo del chip NFC
+            String chipName = NfcChipIdentifier.detect();
             titles.add("Modelo del chip NFC");
             values.add(chipName != null && !chipName.isEmpty() ? chipName : "Desconocido");
+
 
             requireActivity().runOnUiThread(() -> {
                 // Ocultar ProgressBar y mostrar resultados

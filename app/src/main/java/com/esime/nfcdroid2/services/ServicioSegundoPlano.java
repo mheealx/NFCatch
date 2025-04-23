@@ -100,14 +100,24 @@ public class ServicioSegundoPlano extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this);
+
+        if (adapter == null) {
+            Log.w(TAG, "Dispositivo sin NFC. Deteniendo servicio y evitando reinicio automático.");
+            stopSelf(); // Detenemos el servicio de inmediato
+            return START_NOT_STICKY; // El sistema NO reiniciará el servicio automáticamente
+        }
+
         if (intent != null && ACTION_HANDLE_TAG.equals(intent.getAction())) {
             Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
             if (tag != null) {
                 procesarTag(tag);
             }
         }
-        return START_STICKY;
+
+        return START_STICKY; // Si hay NFC, se comporta normalmente (se reinicia si es necesario)
     }
+
 
     private void procesarTag(Tag tag) {
         marcarLecturaNfc();
