@@ -77,7 +77,7 @@
                 android:scrollbars="vertical"
                 android:padding="8dp" />
 
-            <!-- Mensaje si no hay archivos (centrado ahora) -->
+            <!-- Mensaje si no hay archivos-->
             <TextView
                 android:id="@+id/emptyView"
                 android:layout_width="wrap_content"

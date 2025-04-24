@@ -301,53 +301,7 @@
                 android:layout_marginTop="8dp"
                 android:layout_gravity="center"/>
 
-            <!-- Categoría: Apariencia -->
-            <TextView
-                android:id="@+id/appearance_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Apariencia"
-                android:textSize="18sp"
-                android:textAlignment="center"
-                android:textStyle="bold"
-                android:textColor="?android:textColorPrimary"
-                android:layout_marginTop="24dp"
-                android:layout_gravity="start" />
 
-            <!-- CardView para el Tema Claro/Oscuro -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="#FFFFFF">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="16dp"
-                    android:gravity="center_vertical">
-
-                    <!-- Switch para activar/desactivar el Modo oscuro -->
-                    <TextView
-                        android:id="@+id/modooscuro_label"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:text="Modo Oscuro"
-                        android:textSize="16sp"
-                        android:textColor="#000000"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"/>
-
-                    <Switch
-                        android:id="@+id/modooscuro_switch"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="false"/>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
 
             <!-- Categoría: Respaldo y restauración -->
             <TextView
@@ -398,6 +352,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Reestablecer valores predeterminados"
+                        android:textColor="#ffffff"
+                        android:backgroundTint="?attr/colorPrimary"
+                        android:layout_marginTop="8dp"/>
+                    <Button
+                        android:id="@+id/eliminacion_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Eliminar logs guardados"
                         android:textColor="#ffffff"
                         android:backgroundTint="?attr/colorPrimary"
                         android:layout_marginTop="8dp"/>
