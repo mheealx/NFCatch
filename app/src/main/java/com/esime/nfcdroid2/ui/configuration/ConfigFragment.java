@@ -24,8 +24,8 @@ public class ConfigFragment extends Fragment {
         binding = FragmentConfigBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        final TextView textView = binding.textSlideshow;
-        slideshowViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+        //final TextView textView = binding.textSlideshow;
+        //slideshowViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
         return root;
     }
 

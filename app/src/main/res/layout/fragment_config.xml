@@ -6,17 +6,444 @@
     android:layout_height="match_parent"
     tools:context=".ui.configuration.ConfigFragment">
 
-    <TextView
-        android:id="@+id/text_slideshow"
+    <!-- Contenedor Scrollable -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        android:fillViewport="true">
+
+        <!-- LinearLayout que contiene todos los elementos dentro del ScrollView -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:spacing="16dp">
+
+            <!-- Título de la configuración -->
+            <TextView
+                android:id="@+id/config_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Configuración\n"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:textColor="?android:textColorPrimary"
+                android:layout_marginTop="16dp"
+                android:layout_gravity="center"/>
+
+            <!-- Categoría: Iniciar servicio automáticamente -->
+            <TextView
+                android:id="@+id/auto_start_service_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Inicio Automático Después de Reinicio"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="?android:textColorPrimary"
+                android:layout_marginTop="24dp"
+                android:layout_gravity="start" />
+
+            <!-- CardView para activar/desactivar inicio automático del servicio -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <!-- Switch para activar/desactivar el silencio programado -->
+                    <TextView
+                        android:id="@+id/inicioauto_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Iniciar automáticamente\ndespués de reiniciar"
+                        android:textSize="16sp"
+                        android:textColor="#000000"
+                        android:layout_marginEnd="8dp"/>
+
+                    <Switch
+                        android:id="@+id/inicioauto_switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="false"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+
+
+            <!-- Categoría: Notificaciones -->
+            <TextView
+                android:id="@+id/notifications_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Notificaciones"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:textColor="?android:textColorPrimary"
+                android:layout_marginTop="24dp"
+                android:layout_gravity="start" />
+
+            <!-- CardView para sonido de notificaciones -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <!-- Texto para Modo de sonido -->
+                    <TextView
+                        android:id="@+id/sound_mode_label"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Modo"
+                        android:textSize="16sp"
+                        android:textColor="#000000"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"/>
+
+                    <!-- Spinner para seleccionar el sonido -->
+                    <Spinner
+                        android:id="@+id/sound_spinner"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Botón para reproducir el sonido seleccionado -->
+            <Button
+                android:id="@+id/play_sound_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Escuchar sonido"
+                android:textColor="#ffffff"
+                android:backgroundTint="?attr/colorPrimary"
+                android:layout_marginTop="8dp"
+                />
+
+            <!-- CardView para configuración de silencio programado -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <!-- Switch para activar/desactivar el silencio programado -->
+                    <TextView
+                        android:id="@+id/scheduled_silence_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Silencio programado"
+                        android:textSize="16sp"
+                        android:textColor="#000000"
+                        android:layout_marginEnd="8dp"/>
+
+                    <Switch
+                        android:id="@+id/scheduled_silence_switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="false"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- CardView para los botones de inicio y fin de silencio programado -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <!-- Botón para configurar el inicio del silencio programado -->
+                    <Button
+                        android:id="@+id/silence_start_button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Inicio Silencio"
+                        android:textColor="#ffffff"
+                        android:backgroundTint="?attr/colorPrimary"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"/>
+
+                    <!-- Botón para configurar el fin del silencio programado -->
+                    <Button
+                        android:id="@+id/silence_end_button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Fin Silencio"
+                        android:textColor="#ffffff"
+                        android:backgroundTint="?attr/colorPrimary"
+                        android:layout_weight="1"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Categoría: Modo de ahorro de batería -->
+            <TextView
+                android:id="@+id/battery_saving_mode_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ahorro de Batería"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:textColor="?android:textColorPrimary"
+                android:layout_marginTop="24dp"
+                android:layout_gravity="start" />
+
+            <!-- CardView para Modo de ahorro de batería -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <!-- Switch para activar/desactivar el Modo de ahorro de batería -->
+                    <TextView
+                        android:id="@+id/battery_saving_mode_switch_label"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Modo de ahorro de batería"
+                        android:textSize="16sp"
+                        android:textColor="#000000"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"/>
+
+                    <Switch
+                        android:id="@+id/battery_saving_mode_switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="false"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#FFFFFF"/>
+
+            <!-- Slider para seleccionar el porcentaje de batería -->
+            <TextView
+                android:id="@+id/battery_percentage_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Porcentaje de batería para activar el ahorro\n\n"
+                android:textAllCaps="true"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textAlignment="center"
+                android:textColor="?android:textColorPrimary"
+                android:layout_marginTop="16dp" />
+
+            <SeekBar
+                android:id="@+id/battery_saving_seekbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progressBackgroundTint="@color/white"
+                android:progress="20" /> <!-- Establecer valor inicial a 20% -->
+
+            <TextView
+                android:id="@+id/battery_percentage_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="20%"
+                android:textSize="14sp"
+                android:textColor="?android:textColorPrimary"
+                android:layout_marginTop="8dp"
+                android:layout_gravity="center"/>
+
+            <!-- Categoría: Apariencia -->
+            <TextView
+                android:id="@+id/appearance_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Apariencia"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:textColor="?android:textColorPrimary"
+                android:layout_marginTop="24dp"
+                android:layout_gravity="start" />
+
+            <!-- CardView para el Tema Claro/Oscuro -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <!-- Switch para activar/desactivar el Modo oscuro -->
+                    <TextView
+                        android:id="@+id/modooscuro_label"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Modo Oscuro"
+                        android:textSize="16sp"
+                        android:textColor="#000000"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"/>
+
+                    <Switch
+                        android:id="@+id/modooscuro_switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="false"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Categoría: Respaldo y restauración -->
+            <TextView
+                android:id="@+id/backup_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Respaldo y Restauración"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:textColor="?android:textColorPrimary"
+                android:layout_marginTop="24dp"
+                android:layout_gravity="start" />
+
+            <!-- CardView para Respaldo y restauración de configuraciones -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <Button
+                        android:id="@+id/respaldo_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Respaldar configuraciones"
+                        android:textColor="#ffffff"
+                        android:backgroundTint="?attr/colorPrimary"
+                        android:layout_marginTop="8dp"/>
+                    <Button
+                        android:id="@+id/restauracion_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Restaurar configuraciones"
+                        android:textColor="#ffffff"
+                        android:backgroundTint="?attr/colorPrimary"
+                        android:layout_marginTop="8dp"/>
+                    <Button
+                        android:id="@+id/reestablecimiento_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Reestablecer valores predeterminados"
+                        android:textColor="#ffffff"
+                        android:backgroundTint="?attr/colorPrimary"
+                        android:layout_marginTop="8dp"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Categoría: Selección de idioma -->
+            <TextView
+                android:id="@+id/language_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Seleccionar Idioma"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:textColor="?android:textColorPrimary"
+                android:layout_marginTop="24dp"
+                android:layout_gravity="start" />
+
+            <!-- CardView para Selección de idioma -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <Button
+                        android:id="@+id/language_selection_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Seleccionar idioma de la app"
+                        android:textColor="#ffffff"
+                        android:backgroundTint="?attr/colorPrimary"
+                        android:layout_marginTop="8dp"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </ScrollView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

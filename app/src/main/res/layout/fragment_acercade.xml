@@ -76,7 +76,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/license_button"
                 android:textColor="#ffffff"
-                android:backgroundTint="#FFB74D"
+                android:backgroundTint="?attr/colorPrimary"
                 android:layout_marginTop="28dp"
                 android:layout_gravity="center_horizontal"/>
 
@@ -92,7 +92,7 @@
                     android:id="@+id/link1"
                     android:layout_width="155dp"
                     android:layout_height="55dp"
-                    android:backgroundTint="#FFB74D"
+                    android:backgroundTint="?attr/colorPrimary"
                     android:text="@string/enlace1"
                     android:textColor="#ffffff"
                     android:layout_marginEnd="8dp" />
@@ -101,7 +101,7 @@
                     android:id="@+id/link2"
                     android:layout_width="155dp"
                     android:layout_height="55dp"
-                    android:backgroundTint="#FFB74D"
+                    android:backgroundTint="?attr/colorPrimary"
                     android:text="@string/enlace2"
                     android:textColor="#ffffff"
                     android:layout_marginStart="8dp" />
