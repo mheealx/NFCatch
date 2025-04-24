@@ -101,5 +101,8 @@
             </intent-filter>
         </receiver>
 
+        <activity android:name=".ui.acercade.LicenseActivity"
+            android:label="Licencia" />
+
     </application>
 </manifest>

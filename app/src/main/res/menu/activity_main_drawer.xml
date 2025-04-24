@@ -24,5 +24,11 @@
             android:id="@+id/nav_acerca_de"
             android:icon="@drawable/info_circle_icon"
             android:title="@string/menu_acerca_de" />
+        <item
+            android:id="@+id/salir"
+            android:icon="@drawable/exit_icon"
+            android:title="@string/menu_salir"/>
     </group>
+
+
 </menu>

@@ -1,5 +1,6 @@
 package com.esime.nfcdroid2.ui.informacion.componentes;
 
+import android.util.Pair;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,12 +10,11 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Basado en conceptos de detección de chip de proyectos como NfcGate.
- * Implementación propia adaptada para este proyecto.
- */
-
 public class NfcChipIdentifier {
+
+    // ─────────────────────────────────────────────
+    // 🔍 Detección de cada tipo
+    // ─────────────────────────────────────────────
 
     public static String detect() {
         List<ChipGuess> guesses = new ArrayList<>();
@@ -33,21 +33,21 @@ public class NfcChipIdentifier {
             }
         }
 
-        return best != null ? best.toString() : "Unknown";
+        return best != null ? best.toString() : "Desconocido -- No se reconoce el chip";
     }
 
     // ─────────────────────────────────────────────
     // 🔍 Detección de cada tipo
     // ─────────────────────────────────────────────
 
-    private static void detectBroadcom(List<ChipGuess> results) {
+    private static void detectBroadcom(List<ChipGuess> guesses) {
         for (String path : searchPaths("libnfc-brcm.conf")) {
             readLines(path, line -> {
                 if (line.contains("TRANSPORT_DRIVER")) {
-                    String val = splitValue(line);
+                    String val = splitConfigLine(line).second;
                     if (val != null && exists(val)) {
                         String chip = "Broadcom Device " + val.replace("/dev/", "");
-                        results.add(new ChipGuess(chip, 0.9f));
+                        guesses.add(new ChipGuess(chip, 0.9f));
                         return false;
                     }
                 }
@@ -56,15 +56,26 @@ public class NfcChipIdentifier {
         }
     }
 
-    private static void detectSamsung(List<ChipGuess> results) {
+    private static Pair<String, String> splitConfigLine(String line) {
+        String[] parts = line.split("=", 2);
+
+        if (parts.length == 2) {
+            return new Pair<>(parts[0].trim(), parts[1].trim().replaceAll("(^\")|(\"$)", ""));
+        }
+
+        return null;
+    }
+
+
+    private static void detectSamsung(List<ChipGuess> guesses) {
         for (String path : searchPaths("libnfc-sec-vendor.conf")) {
             readLines(path, line -> {
                 if (line.startsWith("FW_FILE_NAME") || line.startsWith("RF_FILE_NAME")) {
-                    String val = splitValue(line);
+                    String val = splitConfigLine(line).second;
                     if (val != null) {
                         String[] tokens = val.replace("\"", "").split("_");
                         if (tokens.length > 0) {
-                            results.add(new ChipGuess("Samsung " + tokens[0].toUpperCase(), 0.9f));
+                            guesses.add(new ChipGuess("Samsung " + tokens[0].toUpperCase(), 0.9f));
                         }
                     }
                 }
@@ -73,15 +84,15 @@ public class NfcChipIdentifier {
         }
     }
 
-    private static void detectSt(List<ChipGuess> results) {
+    private static void detectSt(List<ChipGuess> guesses) {
         for (String path : searchPaths("libnfc-hal-st.conf")) {
             readLines(path, line -> {
                 if (line.contains("STNFC_FW_BIN_NAME") || line.contains("STNFC_FW_CONF_NAME")) {
-                    String val = splitValue(line);
+                    String val = splitConfigLine(line).second;
                     if (val != null) {
                         Matcher m = Pattern.compile(".*/(\\w+)_").matcher(val);
                         if (m.lookingAt()) {
-                            results.add(new ChipGuess("ST " + m.group(1).toUpperCase(), 0.9f));
+                            guesses.add(new ChipGuess("ST " + m.group(1).toUpperCase(), 0.9f));
                         }
                     }
                 }
@@ -90,7 +101,7 @@ public class NfcChipIdentifier {
         }
     }
 
-    private static void detectNxp(List<ChipGuess> results) {
+    private static void detectNxp(List<ChipGuess> guesses) {
         List<String> filenames = new ArrayList<>(Arrays.asList("libnfc-nxp.conf"));
 
         String sku = getSystemProp("ro.boot.product.hardware.sku");
@@ -106,10 +117,10 @@ public class NfcChipIdentifier {
         for (String path : searchPaths(filenames)) {
             readLines(path, line -> {
                 if (line.contains("NXP_NFC_CHIP") || line.contains("NXP_NFC_CHIP_TYPE")) {
-                    String val = splitValue(line);
+                    String val = splitConfigLine(line).second;
                     if (val != null) {
-                        String chipName = chipMap.getOrDefault(val, "Unknown");
-                        results.add(new ChipGuess("NXP " + chipName, 0.8f));
+                        String chipName = chipMap.getOrDefault(val, "Desconocido -- No se reconoce el chip");
+                        guesses.add(new ChipGuess("NXP " + chipName, 0.8f));
                     }
                 }
                 return true;
@@ -117,7 +128,7 @@ public class NfcChipIdentifier {
         }
     }
 
-    private static void detectNxpOppo(List<ChipGuess> results) {
+    private static void detectNxpOppo(List<ChipGuess> guesses) {
         List<String> suffixSources = Arrays.asList(
                 getSystemProp("ro.separate.soft"),
                 getSystemProp("ro.build.product"),
@@ -134,7 +145,7 @@ public class NfcChipIdentifier {
         if (suffix != null) {
             String[] parts = suffix.split("_");
             if (parts.length > 0) {
-                results.add(new ChipGuess(parts[0].toUpperCase(), 0.91f));
+                guesses.add(new ChipGuess(parts[0].toUpperCase(), 0.91f));
             }
         }
     }

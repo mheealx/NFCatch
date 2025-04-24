@@ -4,19 +4,123 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.acercade.AcercaFragment">
+    tools:context=".ui.acercade.AcercaFragment"
+    android:background="@drawable/side_nav_bar">
 
-    <TextView
-        android:id="@+id/text_slideshow"
+
+    <!-- ScrollView para permitir el desplazamiento en pantallas pequeñas -->
+    <android.widget.ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <!-- LinearLayout para organizar los elementos en vertical -->
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <!-- Logo de la app -->
+            <ImageView
+                android:id="@+id/logo"
+                android:layout_width="224dp"
+                android:layout_height="219dp"
+                android:layout_marginTop="16dp"
+                android:src="@mipmap/logo_sinfondo"
+                android:layout_gravity="center_horizontal"/>
+
+            <!-- Nombre de la aplicación -->
+            <TextView
+                android:id="@+id/appName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                android:textAlignment="center"
+                android:textColor="?android:textColorPrimary"
+                android:textStyle="bold"
+                android:textSize="24sp"
+                android:layout_marginTop="8dp"
+                android:layout_gravity="center_horizontal"/>
+
+            <!-- Versión de la aplicación -->
+            <TextView
+                android:id="@+id/appVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/version"
+                android:textStyle="italic"
+                android:textColor="?android:textColorPrimary"
+                android:textSize="16sp"
+                android:textAlignment="center"
+                android:layout_marginTop="8dp"
+                android:layout_gravity="center_horizontal"/>
+
+            <!-- Descripción del proyecto -->
+            <TextView
+                android:id="@+id/paragraph"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/descripcion"
+                android:textStyle="bold"
+                android:textAlignment="center"
+                android:textColor="?android:textColorPrimary"
+                android:textSize="14sp"
+                android:layout_marginTop="16dp"
+                android:layout_gravity="center_horizontal"/>
+
+            <!-- Botón de licencia -->
+            <Button
+                android:id="@+id/licenseButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/license_button"
+                android:textColor="#ffffff"
+                android:backgroundTint="#FFB74D"
+                android:layout_marginTop="28dp"
+                android:layout_gravity="center_horizontal"/>
+
+            <!-- Fila con los botones "ESIME Culhuacan" y "CISEG-CIC" -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center">
+
+                <Button
+                    android:id="@+id/link1"
+                    android:layout_width="155dp"
+                    android:layout_height="55dp"
+                    android:backgroundTint="#FFB74D"
+                    android:text="@string/enlace1"
+                    android:textColor="#ffffff"
+                    android:layout_marginEnd="8dp" />
+
+                <Button
+                    android:id="@+id/link2"
+                    android:layout_width="155dp"
+                    android:layout_height="55dp"
+                    android:backgroundTint="#FFB74D"
+                    android:text="@string/enlace2"
+                    android:textColor="#ffffff"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+
+            <!-- Autor y copyright-->
+            <TextView
+                android:id="@+id/paragraph2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/autor"
+
+                android:textAlignment="center"
+                android:textColor="?android:textColorPrimary"
+                android:textSize="12sp"
+                android:layout_marginTop="20dp"
+                android:layout_gravity="center_horizontal" />
+
+        </LinearLayout>
+    </android.widget.ScrollView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

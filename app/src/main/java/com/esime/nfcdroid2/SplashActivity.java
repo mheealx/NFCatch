@@ -46,7 +46,7 @@ public class SplashActivity extends AppCompatActivity {
         }
 
         // Mostrar splash solo la primera vez
-        setContentView(R.layout.activity_splash);
+        setContentView(R.layout.actividad_splash_inicial);
         MaterialButton startButton = findViewById(R.id.startButton);
 
         startButton.setOnClickListener(v -> {

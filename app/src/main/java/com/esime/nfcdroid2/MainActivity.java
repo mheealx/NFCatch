@@ -3,11 +3,16 @@ package com.esime.nfcdroid2;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuItem;
 
+import com.esime.nfcdroid2.services.ServicioSegundoPlano;
 import com.esime.nfcdroid2.ui.home.HomeFragment;
 import com.google.android.material.navigation.NavigationView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
@@ -18,7 +23,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.esime.nfcdroid2.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private AppBarConfiguration mAppBarConfiguration;
     private ActivityMainBinding binding;
@@ -43,12 +48,15 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
-        // 🔧 Ocultar título solo en GalleryFragment (Historial)
+        // Ocultar titulos personalizados, mostrar título estático en Header
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
             if (destination.getId() == R.id.nav_gallery || destination.getId() == R.id.nav_home || destination.getId() == R.id.nav_slideshow || destination.getId() == R.id.nav_informacion || destination.getId() == R.id.nav_acerca_de) {
-                getSupportActionBar().setTitle(""); // Quita "Historial"
+                getSupportActionBar().setTitle("");
             }
         });
+
+        // Asignar el listener para manejar los ítems del menú
+        navigationView.setNavigationItemSelectedListener(this);
     }
 
     @Override
@@ -64,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
                 || super.onSupportNavigateUp();
     }
 
+    //Lanza HomeFragment (consola) como principal
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -81,5 +90,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //Botón de salir de la aplicación
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.salir) {
+            Intent serviceIntent = new Intent(this, ServicioSegundoPlano.class); //Inicia el servicio de segundo plano
+            ContextCompat.startForegroundService(this, serviceIntent);
+            finish(); // Cierre de la app
+        } else {
+            NavigationUI.onNavDestinationSelected(item, Navigation.findNavController(this, R.id.nav_host_fragment_content_main)); //Función de los demás botones
+        }
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        if (drawer != null) {
+            drawer.closeDrawer(GravityCompat.START);
+        }
+
+        return true;
+    }
 
 }
