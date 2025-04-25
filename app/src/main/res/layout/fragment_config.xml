@@ -11,7 +11,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="16dp"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:background="?android:colorBackground">
+
 
         <!-- LinearLayout que contiene todos los elementos dentro del ScrollView -->
         <LinearLayout
@@ -102,7 +104,7 @@
                 android:layout_marginTop="16dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
-                app:cardBackgroundColor="#FFFFFF">
+                app:cardBackgroundColor="#020202">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -118,7 +120,7 @@
                         android:layout_height="wrap_content"
                         android:text="Modo"
                         android:textSize="16sp"
-                        android:textColor="#000000"
+                        android:textColor="#ffffff"
                         android:layout_marginEnd="8dp"
                         android:layout_weight="1"/>
 
@@ -360,45 +362,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Eliminar logs guardados"
-                        android:textColor="#ffffff"
-                        android:backgroundTint="?attr/colorPrimary"
-                        android:layout_marginTop="8dp"/>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Categoría: Selección de idioma -->
-            <TextView
-                android:id="@+id/language_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Seleccionar Idioma"
-                android:textSize="18sp"
-                android:textAlignment="center"
-                android:textStyle="bold"
-                android:textColor="?android:textColorPrimary"
-                android:layout_marginTop="24dp"
-                android:layout_gravity="start" />
-
-            <!-- CardView para Selección de idioma -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="#FFFFFF">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <Button
-                        android:id="@+id/language_selection_button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Seleccionar idioma de la app"
                         android:textColor="#ffffff"
                         android:backgroundTint="?attr/colorPrimary"
                         android:layout_marginTop="8dp"/>
