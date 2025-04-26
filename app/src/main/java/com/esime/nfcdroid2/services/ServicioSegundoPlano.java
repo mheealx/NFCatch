@@ -11,13 +11,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.media.AudioAttributes;
+import android.net.Uri;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
-import android.provider.Settings;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -35,7 +36,8 @@ import java.util.*;
 public class ServicioSegundoPlano extends Service {
 
     private static final String CHANNEL_ID = "nfc_background_channel";
-    private static final String NFC_EVENT_CHANNEL_ID = "nfc_event_channel";
+    private static final String SILENCE_MODE_CHANNEL_ID = "nfc_silence_mode_channel";
+    private static final String CUSTOM_SOUND_CHANNEL_ID = "nfc_custom_sound_channel";
     private static final String TAG = "NFC_SERVICE";
     private static final String ACTION_HANDLE_TAG = "com.esime.nfcdroid2.ACTION_HANDLE_TAG";
 
@@ -53,7 +55,7 @@ public class ServicioSegundoPlano extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        crearCanalNotificacion();
+        recrearCanalesNotificaciones(); // ✅ Mejorado: recrea todos los canales correctamente
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("NFCDroid activo")
@@ -64,7 +66,10 @@ public class ServicioSegundoPlano extends Service {
                 .build();
 
         startForeground(1, notification);
+        registrarBroadcastPantalla();
+    }
 
+    private void registrarBroadcastPantalla() {
         screenReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -104,8 +109,8 @@ public class ServicioSegundoPlano extends Service {
 
         if (adapter == null) {
             Log.w(TAG, "Dispositivo sin NFC. Deteniendo servicio y evitando reinicio automático.");
-            stopSelf(); // Detenemos el servicio de inmediato
-            return START_NOT_STICKY; // El sistema NO reiniciará el servicio automáticamente
+            stopSelf();
+            return START_NOT_STICKY;
         }
 
         if (intent != null && ACTION_HANDLE_TAG.equals(intent.getAction())) {
@@ -115,9 +120,8 @@ public class ServicioSegundoPlano extends Service {
             }
         }
 
-        return START_STICKY; // Si hay NFC, se comporta normalmente (se reinicia si es necesario)
+        return START_STICKY;
     }
-
 
     private void procesarTag(Tag tag) {
         marcarLecturaNfc();
@@ -157,9 +161,165 @@ public class ServicioSegundoPlano extends Service {
         enviarNotificacion();
     }
 
-    private String formatoLog(String timestamp, int pid, int tid, String tag, String pkg, String lvl, String msg) {
-        return String.format(Locale.getDefault(), "%s %5d-%5d %-25s %-35s %-1s  %s",
-                timestamp, pid, tid, tag, pkg, lvl, msg);
+    private void enviarNotificacion() {
+        SharedPreferences preferences = getSharedPreferences("config_preferences", MODE_PRIVATE);
+        String modo = preferences.getString("notification_mode", "predeterminado");
+        boolean isScheduledSilenceEnabled = preferences.getBoolean("scheduled_silence_enabled", false);
+        boolean estaEnHorarioSilencio = verificarHorarioSilencio(preferences);
+
+        String canalNotificacion;
+
+        if ("silencio".equals(modo) || (isScheduledSilenceEnabled && estaEnHorarioSilencio)) {
+            canalNotificacion = SILENCE_MODE_CHANNEL_ID;
+        } else if ("personalizado".equals(modo)) {
+            canalNotificacion = CUSTOM_SOUND_CHANNEL_ID;
+        } else {
+            canalNotificacion = AppInfo.getDynamicChannelId();
+        }
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.putExtra("abrir_fragmento", "historial");
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, canalNotificacion)
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentTitle("HUBO UN EVENTO NFC")
+                .setContentText("Revisa el log en el historial de la app")
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+        Notification noti = builder.build();
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.notify(2, noti);
+    }
+
+    private boolean verificarHorarioSilencio(SharedPreferences preferences) {
+        int startHour = preferences.getInt("silence_start_hour", 22);
+        int startMinute = preferences.getInt("silence_start_minute", 0);
+        int endHour = preferences.getInt("silence_end_hour", 6);
+        int endMinute = preferences.getInt("silence_end_minute", 0);
+
+        Calendar ahora = Calendar.getInstance();
+        int horaActual = ahora.get(Calendar.HOUR_OF_DAY);
+        int minutoActual = ahora.get(Calendar.MINUTE);
+
+        int actualMinutos = horaActual * 60 + minutoActual;
+        int startMinutos = startHour * 60 + startMinute;
+        int endMinutos = endHour * 60 + endMinute;
+
+        if (startMinutos < endMinutos) {
+            return actualMinutos >= startMinutos && actualMinutos < endMinutos;
+        } else {
+            return actualMinutos >= startMinutos || actualMinutos < endMinutos;
+        }
+    }
+
+    private void recrearCanalesNotificaciones() {
+        crearCanalNotificacion();
+        crearCanalSilencioProgramado();
+        crearCanalSonidoPersonalizado();
+    }
+
+    private void crearCanalNotificacion() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager manager = getSystemService(NotificationManager.class);
+
+            if (manager.getNotificationChannel(CHANNEL_ID) != null) {
+                manager.deleteNotificationChannel(CHANNEL_ID);
+            }
+
+            NotificationChannel canal = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Servicio NFC en segundo plano",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            canal.setDescription("NFCDroid registra actividad del chip NFC");
+            canal.setSound(null, null);
+            canal.enableVibration(false);
+            manager.createNotificationChannel(canal);
+
+            if (manager.getNotificationChannel(AppInfo.getDynamicChannelId()) == null) {
+                NotificationChannel canalSonido = new NotificationChannel(
+                        AppInfo.getDynamicChannelId(),
+                        "Eventos NFC detectados",
+                        NotificationManager.IMPORTANCE_HIGH
+                );
+
+                AudioAttributes attrs = new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build();
+
+                Uri sonido = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.notificacion);
+                canalSonido.setSound(sonido, attrs);
+                canalSonido.enableVibration(true);
+                manager.createNotificationChannel(canalSonido);
+            }
+        }
+    }
+
+    private void crearCanalSilencioProgramado() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager manager = getSystemService(NotificationManager.class);
+
+            if (manager.getNotificationChannel(SILENCE_MODE_CHANNEL_ID) != null) {
+                manager.deleteNotificationChannel(SILENCE_MODE_CHANNEL_ID);
+            }
+
+            NotificationChannel canal = new NotificationChannel(
+                    SILENCE_MODE_CHANNEL_ID,
+                    "Notificaciones Silencio Programado",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            canal.setDescription("Notificaciones sin sonido pero con vibración del sistema");
+            canal.setSound(null, null);
+            canal.enableVibration(true);
+
+            manager.createNotificationChannel(canal);
+        }
+    }
+
+    private void crearCanalSonidoPersonalizado() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            SharedPreferences preferences = getSharedPreferences("config_preferences", MODE_PRIVATE);
+            String uriStr = preferences.getString("custom_sound_uri", null);
+            if (uriStr == null) return;
+
+            String lastUri = preferences.getString("last_custom_channel_uri", null);
+            NotificationManager manager = getSystemService(NotificationManager.class);
+
+            if (manager.getNotificationChannel(CUSTOM_SOUND_CHANNEL_ID) != null && !uriStr.equals(lastUri)) {
+                manager.deleteNotificationChannel(CUSTOM_SOUND_CHANNEL_ID);
+            }
+
+            if (manager.getNotificationChannel(CUSTOM_SOUND_CHANNEL_ID) == null) {
+                Uri sonidoUri = Uri.parse(uriStr);
+
+                NotificationChannel canal = new NotificationChannel(
+                        CUSTOM_SOUND_CHANNEL_ID,
+                        "Canal Personalizado",
+                        NotificationManager.IMPORTANCE_HIGH
+                );
+                canal.setDescription("Canal con sonido personalizado elegido por el usuario");
+
+                AudioAttributes attrs = new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build();
+
+                canal.setSound(sonidoUri, attrs);
+                canal.enableVibration(true);
+                manager.createNotificationChannel(canal);
+
+                preferences.edit().putString("last_custom_channel_uri", uriStr).apply();
+            }
+        }
     }
 
     private void guardarLog(String contenido) {
@@ -181,28 +341,9 @@ public class ServicioSegundoPlano extends Service {
         }
     }
 
-    private void enviarNotificacion() {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        intent.putExtra("abrir_fragmento", "historial");
-
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        Notification noti = new NotificationCompat.Builder(this, NFC_EVENT_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("HUBO UN EVENTO NFC")
-                .setContentText("Revisa el log en el historial de la app")
-                .setAutoCancel(true)
-                .setContentIntent(pendingIntent)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE)
-                .build();
-
-        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        nm.notify(2, noti);
+    private String formatoLog(String timestamp, int pid, int tid, String tag, String pkg, String lvl, String msg) {
+        return String.format(Locale.getDefault(), "%s %5d-%5d %-25s %-35s %-1s  %s",
+                timestamp, pid, tid, tag, pkg, lvl, msg);
     }
 
     private void registrarEvento(String estadoPantalla, String estadoNfc) {
@@ -210,6 +351,7 @@ public class ServicioSegundoPlano extends Service {
         int pid = android.os.Process.myPid();
         int tid = android.os.Process.myTid();
         String pkg = getPackageName();
+
         String log = formatoLog(timestamp, pid, tid, TAG, pkg, "I", "[" + estadoNfc + "] " + estadoPantalla);
         Log.i(TAG, log);
         LogRegistry.add(log);
@@ -226,42 +368,5 @@ public class ServicioSegundoPlano extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
-    }
-
-    private void crearCanalNotificacion() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationManager manager = getSystemService(NotificationManager.class);
-
-            // Canal silencioso para servicio en segundo plano
-            NotificationChannel canalSilencioso = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Servicio NFC en segundo plano",
-                    NotificationManager.IMPORTANCE_LOW
-            );
-            canalSilencioso.setDescription("NFCDroid registra actividad del chip NFC");
-            canalSilencioso.setShowBadge(false);
-            canalSilencioso.setSound(null, null);
-            canalSilencioso.enableVibration(false);
-            manager.createNotificationChannel(canalSilencioso);
-
-            // Canal con sonido para eventos NFC
-            NotificationChannel canalSonido = new NotificationChannel(
-                    NFC_EVENT_CHANNEL_ID,
-                    "Eventos NFC detectados",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-            canalSonido.setDescription("Notificaciones con sonido cuando se detectan etiquetas NFC");
-            canalSonido.enableVibration(true);
-
-            AudioAttributes attrs = new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build();
-
-            canalSonido.setSound(Settings.System.DEFAULT_NOTIFICATION_URI, attrs);
-            canalSonido.setShowBadge(true);
-
-            manager.createNotificationChannel(canalSonido);
-        }
     }
 }
