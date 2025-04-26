@@ -70,7 +70,7 @@ public class InfoFragment extends Fragment {
             // 5. Modelo del chip
             String chipName = hasNfc ? NfcChipIdentifier.detect() : "NFC no disponible";
             titles.add("Modelo del chip NFC");
-            values.add(chipName != null && !chipName.isEmpty() ? chipName : "Desconocido");
+            values.add(!chipName.isEmpty() ? chipName : "Desconocido");
 
 
             requireActivity().runOnUiThread(() -> {

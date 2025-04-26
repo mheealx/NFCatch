@@ -2,6 +2,7 @@ package com.esime.nfcdroid2.services;
 
 import static com.esime.nfcdroid2.utils.NfcIsoDepHelper.bytesToHex;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -55,7 +56,7 @@ public class ServicioSegundoPlano extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        recrearCanalesNotificaciones(); // ✅ Mejorado: recrea todos los canales correctamente
+        recrearCanalesNotificaciones();
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("NFCDroid activo")
@@ -226,6 +227,7 @@ public class ServicioSegundoPlano extends Service {
         crearCanalSonidoPersonalizado();
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     private void crearCanalNotificacion() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager manager = getSystemService(NotificationManager.class);
@@ -264,6 +266,7 @@ public class ServicioSegundoPlano extends Service {
         }
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     private void crearCanalSilencioProgramado() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager manager = getSystemService(NotificationManager.class);
@@ -285,6 +288,7 @@ public class ServicioSegundoPlano extends Service {
         }
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     private void crearCanalSonidoPersonalizado() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             SharedPreferences preferences = getSharedPreferences("config_preferences", MODE_PRIVATE);

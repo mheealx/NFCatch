@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -22,14 +23,17 @@ import androidx.core.content.ContextCompat;
 import com.esime.nfcdroid2.services.ServicioSegundoPlano;
 import com.google.android.material.button.MaterialButton;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SplashActivity extends AppCompatActivity {
 
     private static final int REQUEST_PERMISSIONS = 101;
     private SharedPreferences prefs;
+    private List<String> permisosNecesarios;
 
     private final ActivityResultLauncher<Intent> batteryPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                // Cuando el usuario vuelve de la pantalla de optimización
                 lanzarMainActivity();
             });
 
@@ -45,7 +49,7 @@ public class SplashActivity extends AppCompatActivity {
             return;
         }
 
-        // Mostrar splash solo la primera vez
+        // Mostrar layout inicial
         setContentView(R.layout.actividad_splash_inicial);
         MaterialButton startButton = findViewById(R.id.startButton);
 
@@ -55,7 +59,7 @@ public class SplashActivity extends AppCompatActivity {
 
             new android.os.Handler().postDelayed(() -> {
                 if (!tienePermisosRequeridos()) {
-                    solicitarPermisos();
+                    mostrarExplicacionPermisos();
                 } else {
                     prefs.edit().putBoolean("splash_mostrado", true).apply();
                     verificarExclusionDeBateria();
@@ -70,16 +74,15 @@ public class SplashActivity extends AppCompatActivity {
             String paquete = getPackageName();
 
             if (!pm.isIgnoringBatteryOptimizations(paquete)) {
-                mostrarDialogoExplicacion();
+                mostrarDialogoExplicacionBateria();
                 return;
             }
         }
 
-        // Si ya está excluida o no es necesario, lanzamos MainActivity
         lanzarMainActivity();
     }
 
-    private void mostrarDialogoExplicacion() {
+    private void mostrarDialogoExplicacionBateria() {
         new AlertDialog.Builder(this)
                 .setTitle("Permiso de batería")
                 .setMessage("Para que NFCDroid funcione correctamente en segundo plano y tras reiniciar el dispositivo, necesitamos que excluyas la app de las optimizaciones de batería.")
@@ -89,15 +92,11 @@ public class SplashActivity extends AppCompatActivity {
                     intent.setData(Uri.parse("package:" + getPackageName()));
                     batteryPermissionLauncher.launch(intent);
                 })
-                .setNegativeButton("Cancelar", (dialog, which) -> {
-                    // Usuario canceló, aún así puede continuar
-                    lanzarMainActivity();
-                })
+                .setNegativeButton("Cancelar", (dialog, which) -> lanzarMainActivity())
                 .show();
     }
 
     private void lanzarMainActivity() {
-        // Inicia el servicio en segundo plano
         Intent serviceIntent = new Intent(this, ServicioSegundoPlano.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(serviceIntent);
@@ -105,27 +104,49 @@ public class SplashActivity extends AppCompatActivity {
             startService(serviceIntent);
         }
 
-        // Ir a MainActivity
         startActivity(new Intent(this, MainActivity.class));
         finish();
     }
 
     private boolean tienePermisosRequeridos() {
-        boolean postNotifications = true;
+        permisosNecesarios = new ArrayList<>();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            postNotifications = ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                    == PackageManager.PERMISSION_GRANTED;
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                permisosNecesarios.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                permisosNecesarios.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
         }
 
-        return postNotifications;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                permisosNecesarios.add(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+
+        return permisosNecesarios.isEmpty();
+    }
+
+    private void mostrarExplicacionPermisos() {
+        new AlertDialog.Builder(this)
+                .setTitle("Permisos necesarios")
+                .setMessage("NFCDroid necesita permisos de almacenamiento para respaldar y restaurar configuraciones, y permiso de notificaciones para avisos importantes.\n\n¿Deseas otorgarlos ahora?")
+                .setCancelable(false)
+                .setPositiveButton("Aceptar", (dialog, which) -> solicitarPermisos())
+                .setNegativeButton("Cancelar", (dialog, which) -> {
+                    // Si cancela, igual seguimos pero avisamos
+                    Toast.makeText(this, "Algunos permisos no fueron otorgados", Toast.LENGTH_LONG).show();
+                    prefs.edit().putBoolean("splash_mostrado", true).apply();
+                    verificarExclusionDeBateria();
+                })
+                .show();
     }
 
     private void solicitarPermisos() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.POST_NOTIFICATIONS},
-                    REQUEST_PERMISSIONS);
+        if (permisosNecesarios != null && !permisosNecesarios.isEmpty()) {
+            ActivityCompat.requestPermissions(this, permisosNecesarios.toArray(new String[0]), REQUEST_PERMISSIONS);
         }
     }
 
@@ -134,6 +155,7 @@ public class SplashActivity extends AppCompatActivity {
                                            @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
         prefs.edit().putBoolean("splash_mostrado", true).apply();
         verificarExclusionDeBateria();
     }

@@ -243,101 +243,12 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Categoría: Modo de ahorro de batería -->
-            <TextView
-                android:id="@+id/battery_saving_mode_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Ahorro de Batería"
-                android:textSize="18sp"
-                android:textAlignment="center"
-                android:textStyle="bold"
-                android:textColor="?android:textColorPrimary"
-                android:layout_marginTop="24dp"
-                android:layout_gravity="start" />
-
-            <!-- CardView para Modo de ahorro de batería -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="#FFFFFF">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="16dp"
-                    android:gravity="center_vertical">
-
-                    <!-- Switch para activar/desactivar el Modo de ahorro de batería -->
-                    <TextView
-                        android:id="@+id/battery_saving_mode_switch_label"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:text="Modo de ahorro de batería"
-                        android:textSize="16sp"
-                        android:textColor="#000000"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"/>
-
-                    <Switch
-                        android:id="@+id/battery_saving_mode_switch"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="false"/>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="#FFFFFF"/>
-
-            <!-- Slider para seleccionar el porcentaje de batería -->
-            <TextView
-                android:id="@+id/battery_percentage_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Porcentaje de batería para activar el ahorro\n\n"
-                android:textAllCaps="true"
-                android:textStyle="bold"
-                android:textSize="14sp"
-                android:textAlignment="center"
-                android:textColor="?android:textColorPrimary"
-                android:layout_marginTop="16dp" />
-
-            <SeekBar
-                android:id="@+id/battery_saving_seekbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100"
-                android:progressBackgroundTint="@color/white"
-                android:progress="20" /> <!-- Establecer valor inicial a 20% -->
-
-            <TextView
-                android:id="@+id/battery_percentage_value"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="20%"
-                android:textSize="14sp"
-                android:textColor="?android:textColorPrimary"
-                android:layout_marginTop="8dp"
-                android:layout_gravity="center"/>
-
-
-
             <!-- Categoría: Respaldo y restauración -->
             <TextView
                 android:id="@+id/backup_label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Respaldo y Restauración"
+                android:text="Reestablecimiento"
                 android:textSize="18sp"
                 android:textAlignment="center"
                 android:textStyle="bold"
@@ -360,22 +271,6 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <Button
-                        android:id="@+id/respaldo_button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Respaldar configuraciones"
-                        android:textColor="#ffffff"
-                        android:backgroundTint="?attr/colorPrimary"
-                        android:layout_marginTop="8dp"/>
-                    <Button
-                        android:id="@+id/restauracion_button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Restaurar configuraciones"
-                        android:textColor="#ffffff"
-                        android:backgroundTint="?attr/colorPrimary"
-                        android:layout_marginTop="8dp"/>
                     <Button
                         android:id="@+id/reestablecimiento_button"
                         android:layout_width="match_parent"

@@ -12,6 +12,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,8 +27,13 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.esime.nfcdroid2.R;
 import com.esime.nfcdroid2.databinding.FragmentConfigBinding;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.util.Calendar;
 
 public class ConfigFragment extends Fragment {
@@ -44,7 +50,7 @@ public class ConfigFragment extends Fragment {
 
         preferences = getActivity().getSharedPreferences("config_preferences", Context.MODE_PRIVATE);
 
-        // Inicializar el launcher del picker de tonos
+        // Inicializar picker de tonos
         ringtonePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -64,9 +70,7 @@ public class ConfigFragment extends Fragment {
         inicioAutoSwitch.setChecked(preferences.getBoolean("auto_start_service", true));
         inicioAutoSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             preferences.edit().putBoolean("auto_start_service", isChecked).apply();
-            Toast.makeText(getContext(),
-                    isChecked ? "Inicio automático activado" : "Inicio automático desactivado",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), isChecked ? "Inicio automático activado" : "Inicio automático desactivado", Toast.LENGTH_SHORT).show();
         });
 
         // Switch de silencio programado
@@ -74,12 +78,10 @@ public class ConfigFragment extends Fragment {
         scheduledSilenceSwitch.setChecked(preferences.getBoolean("scheduled_silence_enabled", false));
         scheduledSilenceSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             preferences.edit().putBoolean("scheduled_silence_enabled", isChecked).apply();
-            Toast.makeText(getContext(),
-                    isChecked ? "Silencio programado activado" : "Silencio programado desactivado",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), isChecked ? "Silencio programado activado" : "Silencio programado desactivado", Toast.LENGTH_SHORT).show();
         });
 
-        // Botones de hora de inicio/fin
+        // Botones de horario de silencio
         Button silenceStartButton = binding.silenceStartButton;
         Button silenceEndButton = binding.silenceEndButton;
         int startHour = preferences.getInt("silence_start_hour", 22);
@@ -93,7 +95,7 @@ public class ConfigFragment extends Fragment {
         silenceStartButton.setOnClickListener(v -> mostrarSelectorHora(true, silenceStartButton));
         silenceEndButton.setOnClickListener(v -> mostrarSelectorHora(false, silenceEndButton));
 
-        // Botones y TextViews de sonido
+        // Botones y textos de sonido
         Button selectSoundModeButton = binding.selectSoundModeButton;
         Button playSoundButton = binding.playSoundButton;
         TextView notaAudioTextView = binding.notaAudio;
@@ -105,6 +107,13 @@ public class ConfigFragment extends Fragment {
         selectSoundModeButton.setOnClickListener(v -> mostrarDialogoSeleccionModo(playSoundButton, notaAudioTextView, currentModeTextView));
         playSoundButton.setOnClickListener(v -> seleccionarSonidoPersonalizado());
 
+        // Botones de respaldo y restauración
+        Button reestablecimientoButton = root.findViewById(R.id.reestablecimiento_button);
+        Button eliminacionButton = root.findViewById(R.id.eliminacion_button);
+
+        reestablecimientoButton.setOnClickListener(v -> reestablecerValoresPredeterminados());
+        eliminacionButton.setOnClickListener(v -> eliminarLogsGuardados());
+
         return root;
     }
 
@@ -114,6 +123,48 @@ public class ConfigFragment extends Fragment {
         binding = null;
     }
 
+
+
+    private void reestablecerValoresPredeterminados() {
+        SharedPreferences.Editor editor = preferences.edit();
+        new AlertDialog.Builder(getContext())
+                .setTitle("¿Estás seguro?")
+                .setMessage("¿Deseas reestablecer los valores por defecto?")
+                .setPositiveButton("Sí", (dialog, which) -> {
+                    if (getActivity() != null) {
+                        editor.clear();
+                        editor.putBoolean("auto_start_service", true);
+                        editor.putBoolean("scheduled_silence_enabled", false);
+                        binding.inicioautoSwitch.setChecked(true);
+                        binding.scheduledSilenceSwitch.setChecked(false);
+                        editor.apply();
+                        getActivity().recreate();
+                        Toast.makeText(getContext(), "Valores predeterminados restaurados", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                .setCancelable(false)
+                .show();
+    }
+
+
+    private void eliminarLogsGuardados() {
+        File documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+        File appDir = new File(documentsDir, "NFCDroid");
+
+        if (appDir.exists() && appDir.isDirectory()) {
+            File[] archivos = appDir.listFiles();
+            if (archivos != null) {
+                for (File archivo : archivos) {
+                    if (archivo.getName().endsWith(".txt")) {
+                        archivo.delete();
+                    }
+                }
+            }
+        }
+        Toast.makeText(getContext(), "Logs eliminados", Toast.LENGTH_SHORT).show();
+    }
+
     private void mostrarSelectorHora(boolean esInicio, Button targetButton) {
         Calendar calendario = Calendar.getInstance();
         int horaActual = calendario.get(Calendar.HOUR_OF_DAY);
@@ -121,13 +172,32 @@ public class ConfigFragment extends Fragment {
 
         TimePickerDialog picker = new TimePickerDialog(getContext(), (TimePicker view, int hourOfDay, int minute) -> {
             SharedPreferences.Editor editor = preferences.edit();
+
             if (esInicio) {
+                // Guardamos temporalmente la hora de inicio que se está eligiendo
+                int finHora = preferences.getInt("silence_end_hour", 6);
+                int finMinuto = preferences.getInt("silence_end_minute", 0);
+
+                if (!esHoraInicioAntesDeFin(hourOfDay, minute, finHora, finMinuto)) {
+                    Toast.makeText(getContext(), "La hora de inicio debe ser antes de la hora de fin", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 editor.putInt("silence_start_hour", hourOfDay);
                 editor.putInt("silence_start_minute", minute);
             } else {
+                int inicioHora = preferences.getInt("silence_start_hour", 22);
+                int inicioMinuto = preferences.getInt("silence_start_minute", 0);
+
+                if (!esHoraInicioAntesDeFin(inicioHora, inicioMinuto, hourOfDay, minute)) {
+                    Toast.makeText(getContext(), "La hora de fin debe ser después de la hora de inicio", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 editor.putInt("silence_end_hour", hourOfDay);
                 editor.putInt("silence_end_minute", minute);
             }
+
             editor.apply();
 
             String formato = esInicio ? "Inicio: %02d:%02d" : "Fin: %02d:%02d";
@@ -142,6 +212,18 @@ public class ConfigFragment extends Fragment {
         picker.show();
     }
 
+    // Esta función compara dos horarios (hora:minuto)
+    private boolean esHoraInicioAntesDeFin(int startHour, int startMinute, int endHour, int endMinute) {
+        if (startHour < endHour) {
+            return true;
+        } else if (startHour == endHour) {
+            return startMinute < endMinute;
+        } else {
+            return false;
+        }
+    }
+
+
     private void mostrarDialogoSeleccionModo(Button playSoundButton, TextView notaAudioTextView, TextView currentModeTextView) {
         final String[] modos = {"Silencioso", "Predeterminado", "Personalizado"};
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
@@ -151,15 +233,12 @@ public class ConfigFragment extends Fragment {
             switch (which) {
                 case 0:
                     editor.putString("notification_mode", "silencio");
-                    Toast.makeText(getContext(), "Modo silencioso activado", Toast.LENGTH_SHORT).show();
                     break;
                 case 1:
                     editor.putString("notification_mode", "predeterminado");
-                    Toast.makeText(getContext(), "Modo predeterminado activado", Toast.LENGTH_SHORT).show();
                     break;
                 case 2:
                     editor.putString("notification_mode", "personalizado");
-                    Toast.makeText(getContext(), "Modo personalizado activado", Toast.LENGTH_SHORT).show();
                     break;
             }
             editor.apply();
