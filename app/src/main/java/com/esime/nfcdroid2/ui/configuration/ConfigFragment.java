@@ -30,10 +30,8 @@ import androidx.fragment.app.Fragment;
 import com.esime.nfcdroid2.R;
 import com.esime.nfcdroid2.databinding.FragmentConfigBinding;
 
-import java.io.BufferedReader;
+
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.util.Calendar;
 
 public class ConfigFragment extends Fragment {
@@ -172,32 +170,13 @@ public class ConfigFragment extends Fragment {
 
         TimePickerDialog picker = new TimePickerDialog(getContext(), (TimePicker view, int hourOfDay, int minute) -> {
             SharedPreferences.Editor editor = preferences.edit();
-
             if (esInicio) {
-                // Guardamos temporalmente la hora de inicio que se está eligiendo
-                int finHora = preferences.getInt("silence_end_hour", 6);
-                int finMinuto = preferences.getInt("silence_end_minute", 0);
-
-                if (!esHoraInicioAntesDeFin(hourOfDay, minute, finHora, finMinuto)) {
-                    Toast.makeText(getContext(), "La hora de inicio debe ser antes de la hora de fin", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
                 editor.putInt("silence_start_hour", hourOfDay);
                 editor.putInt("silence_start_minute", minute);
             } else {
-                int inicioHora = preferences.getInt("silence_start_hour", 22);
-                int inicioMinuto = preferences.getInt("silence_start_minute", 0);
-
-                if (!esHoraInicioAntesDeFin(inicioHora, inicioMinuto, hourOfDay, minute)) {
-                    Toast.makeText(getContext(), "La hora de fin debe ser después de la hora de inicio", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
                 editor.putInt("silence_end_hour", hourOfDay);
                 editor.putInt("silence_end_minute", minute);
             }
-
             editor.apply();
 
             String formato = esInicio ? "Inicio: %02d:%02d" : "Fin: %02d:%02d";
@@ -211,18 +190,6 @@ public class ConfigFragment extends Fragment {
 
         picker.show();
     }
-
-    // Esta función compara dos horarios (hora:minuto)
-    private boolean esHoraInicioAntesDeFin(int startHour, int startMinute, int endHour, int endMinute) {
-        if (startHour < endHour) {
-            return true;
-        } else if (startHour == endHour) {
-            return startMinute < endMinute;
-        } else {
-            return false;
-        }
-    }
-
 
     private void mostrarDialogoSeleccionModo(Button playSoundButton, TextView notaAudioTextView, TextView currentModeTextView) {
         final String[] modos = {"Silencioso", "Predeterminado", "Personalizado"};
