@@ -3,6 +3,7 @@ package com.esime.nfcdroid2.utils;
 import android.nfc.Tag;
 import android.nfc.tech.MifareUltralight;
 
+//Lector de tecnología Mifare Ultralight
 public class NfcMifareUltralightHelper {
 
     public static void read(Tag tag, LogCallback logger) {

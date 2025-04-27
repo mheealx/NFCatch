@@ -18,7 +18,8 @@
     <string name="textosplash">La aplicación requiere de ciertos permisos para funcionar correctamente.\n\nSe te solicitarán los permisos necesarios por favor acéptalos.</string>
     <string name="version">Versión de la aplicación</string>
     <string name="descripcion">Proyecto de Tesis realizado para obtener el título de:\nIngeniero en Computación\n\nAsesores:\nDr. en C. y E. Eleazar Aguirre Anaya\nM.S.T.I. Verónica Salas Jiménez\n Dr. en E. Maria Alejandra Martínez Camargo\n\nESIME Culhuacan / CISEG-CIC</string>
-    <string name="license_button">Licencias</string>
+    <string name="licencia">Este proyecto está licenciado bajo Apache 2.0</string>
+    <string name="license_button">Licencia</string>
     <string name="enlace1">ESIME CULHUACAN</string>
     <string name="enlace2">CISEG-CIC</string>
     <string name="autor">Copyright 2025. Luis Alejandro Vázquez Zárate\nInstituto Politécnico Nacional</string>

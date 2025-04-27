@@ -21,18 +21,14 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.TimePicker;
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-
-import com.esime.nfcdroid2.R;
 import com.esime.nfcdroid2.databinding.FragmentConfigBinding;
-
-
 import java.io.File;
 import java.util.Calendar;
+
 
 public class ConfigFragment extends Fragment {
 
@@ -48,7 +44,24 @@ public class ConfigFragment extends Fragment {
 
         preferences = getActivity().getSharedPreferences("config_preferences", Context.MODE_PRIVATE);
 
-        // Inicializar picker de tonos
+        inicializarRingtonePicker();
+        configurarInicioAutomatico();
+        configurarSilencioProgramado();
+        configurarHorariosSilencio();
+        configurarSonidoPersonalizado();
+        configurarOpcionesRespaldo();
+
+        return root;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
+
+    // Abre el selector de tonos
+    private void inicializarRingtonePicker() {
         ringtonePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -62,26 +75,33 @@ public class ConfigFragment extends Fragment {
                     }
                 }
         );
+    }
 
-        // Switch de inicio automático
+    // Configura el switch de inicio automático
+    private void configurarInicioAutomatico() {
         Switch inicioAutoSwitch = binding.inicioautoSwitch;
         inicioAutoSwitch.setChecked(preferences.getBoolean("auto_start_service", true));
         inicioAutoSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             preferences.edit().putBoolean("auto_start_service", isChecked).apply();
             Toast.makeText(getContext(), isChecked ? "Inicio automático activado" : "Inicio automático desactivado", Toast.LENGTH_SHORT).show();
         });
+    }
 
-        // Switch de silencio programado
+    // Configura el switch de silencio programado
+    private void configurarSilencioProgramado() {
         Switch scheduledSilenceSwitch = binding.scheduledSilenceSwitch;
         scheduledSilenceSwitch.setChecked(preferences.getBoolean("scheduled_silence_enabled", false));
         scheduledSilenceSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             preferences.edit().putBoolean("scheduled_silence_enabled", isChecked).apply();
             Toast.makeText(getContext(), isChecked ? "Silencio programado activado" : "Silencio programado desactivado", Toast.LENGTH_SHORT).show();
         });
+    }
 
-        // Botones de horario de silencio
+    // Configura los botones de horarios de inicio y fin de silencio
+    private void configurarHorariosSilencio() {
         Button silenceStartButton = binding.silenceStartButton;
         Button silenceEndButton = binding.silenceEndButton;
+
         int startHour = preferences.getInt("silence_start_hour", 22);
         int startMinute = preferences.getInt("silence_start_minute", 0);
         int endHour = preferences.getInt("silence_end_hour", 6);
@@ -92,8 +112,10 @@ public class ConfigFragment extends Fragment {
 
         silenceStartButton.setOnClickListener(v -> mostrarSelectorHora(true, silenceStartButton));
         silenceEndButton.setOnClickListener(v -> mostrarSelectorHora(false, silenceEndButton));
+    }
 
-        // Botones y textos de sonido
+    // Configura los botones de sonido personalizado
+    private void configurarSonidoPersonalizado() {
         Button selectSoundModeButton = binding.selectSoundModeButton;
         Button playSoundButton = binding.playSoundButton;
         TextView notaAudioTextView = binding.notaAudio;
@@ -104,25 +126,18 @@ public class ConfigFragment extends Fragment {
 
         selectSoundModeButton.setOnClickListener(v -> mostrarDialogoSeleccionModo(playSoundButton, notaAudioTextView, currentModeTextView));
         playSoundButton.setOnClickListener(v -> seleccionarSonidoPersonalizado());
+    }
 
-        // Botones de respaldo y restauración
-        Button reestablecimientoButton = root.findViewById(R.id.reestablecimiento_button);
-        Button eliminacionButton = root.findViewById(R.id.eliminacion_button);
+    // Configura los botones de reestablecer valores y eliminar logs
+    private void configurarOpcionesRespaldo() {
+        Button reestablecimientoButton = binding.reestablecimientoButton;
+        Button eliminacionButton = binding.eliminacionButton;
 
         reestablecimientoButton.setOnClickListener(v -> reestablecerValoresPredeterminados());
         eliminacionButton.setOnClickListener(v -> eliminarLogsGuardados());
-
-        return root;
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
-    }
-
-
-
+    // Reestablece valores de configuración a los predeterminados
     private void reestablecerValoresPredeterminados() {
         SharedPreferences.Editor editor = preferences.edit();
         new AlertDialog.Builder(getContext())
@@ -145,24 +160,34 @@ public class ConfigFragment extends Fragment {
                 .show();
     }
 
-
+    // Eliminación de logs
     private void eliminarLogsGuardados() {
-        File documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-        File appDir = new File(documentsDir, "NFCDroid");
+        new AlertDialog.Builder(getContext())
+                .setTitle("¿Eliminar logs?")
+                .setMessage("¿Estás seguro que deseas eliminar todos los logs almacenados?")
+                .setPositiveButton("Sí", (dialog, which) -> {
+                    File documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+                    File appDir = new File(documentsDir, "NFCDroid");
 
-        if (appDir.exists() && appDir.isDirectory()) {
-            File[] archivos = appDir.listFiles();
-            if (archivos != null) {
-                for (File archivo : archivos) {
-                    if (archivo.getName().endsWith(".txt")) {
-                        archivo.delete();
+                    if (appDir.exists() && appDir.isDirectory()) {
+                        File[] archivos = appDir.listFiles();
+                        if (archivos != null) {
+                            for (File archivo : archivos) {
+                                if (archivo.getName().endsWith(".txt")) {
+                                    archivo.delete();
+                                }
+                            }
+                        }
                     }
-                }
-            }
-        }
-        Toast.makeText(getContext(), "Logs eliminados", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Logs eliminados", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                .setCancelable(true)
+                .show();
     }
 
+
+    // Muestra un selector de hora para configurar el horario de silencio
     private void mostrarSelectorHora(boolean esInicio, Button targetButton) {
         Calendar calendario = Calendar.getInstance();
         int horaActual = calendario.get(Calendar.HOUR_OF_DAY);
@@ -191,6 +216,7 @@ public class ConfigFragment extends Fragment {
         picker.show();
     }
 
+    // Menú de selección del modo de notificación
     private void mostrarDialogoSeleccionModo(Button playSoundButton, TextView notaAudioTextView, TextView currentModeTextView) {
         final String[] modos = {"Silencioso", "Predeterminado", "Personalizado"};
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
@@ -198,15 +224,9 @@ public class ConfigFragment extends Fragment {
         builder.setItems(modos, (dialog, which) -> {
             SharedPreferences.Editor editor = preferences.edit();
             switch (which) {
-                case 0:
-                    editor.putString("notification_mode", "silencio");
-                    break;
-                case 1:
-                    editor.putString("notification_mode", "predeterminado");
-                    break;
-                case 2:
-                    editor.putString("notification_mode", "personalizado");
-                    break;
+                case 0: editor.putString("notification_mode", "silencio"); break;
+                case 1: editor.putString("notification_mode", "predeterminado"); break;
+                case 2: editor.putString("notification_mode", "personalizado"); break;
             }
             editor.apply();
             actualizarVisibilidadBotonSonido(playSoundButton, notaAudioTextView);
@@ -215,6 +235,7 @@ public class ConfigFragment extends Fragment {
         builder.show();
     }
 
+    // Muestra u oculta el botón de seleccionar sonido del modo personalizado
     private void actualizarVisibilidadBotonSonido(Button playSoundButton, TextView notaAudioTextView) {
         String modo = preferences.getString("notification_mode", "predeterminado");
         boolean esPersonalizado = "personalizado".equals(modo);
@@ -223,25 +244,21 @@ public class ConfigFragment extends Fragment {
         notaAudioTextView.setVisibility(esPersonalizado ? View.VISIBLE : View.GONE);
     }
 
+    // Impresión en pantalla del modo actual
     private void actualizarTextoModoActual(TextView currentModeTextView) {
         String modo = preferences.getString("notification_mode", "predeterminado");
         String texto;
 
         switch (modo) {
-            case "silencio":
-                texto = "Modo actual: Silencioso";
-                break;
-            case "personalizado":
-                texto = "Modo actual: Personalizado";
-                break;
-            default:
-                texto = "Modo actual: Predeterminado";
-                break;
+            case "silencio": texto = "Modo actual: Silencioso"; break;
+            case "personalizado": texto = "Modo actual: Personalizado"; break;
+            default: texto = "Modo actual: Predeterminado"; break;
         }
 
         currentModeTextView.setText(texto);
     }
 
+    // Lanza el selector de tono de notificaciones
     private void seleccionarSonidoPersonalizado() {
         Intent intent = new Intent(RingtoneManager.ACTION_RINGTONE_PICKER);
         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION);
@@ -251,6 +268,7 @@ public class ConfigFragment extends Fragment {
         ringtonePickerLauncher.launch(intent);
     }
 
+    // Vuelve a crear el canal del sonido personalizado
     private void recrearCanalSonidoPersonalizado() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager manager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);

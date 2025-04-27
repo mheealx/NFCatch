@@ -10,12 +10,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+//Identificador del chip NFC del dispositivo
 public class NfcChipIdentifier {
 
-    // ─────────────────────────────────────────────
-    // 🔍 Detección de cada tipo
-    // ─────────────────────────────────────────────
-
+    // Metodo principal para detectar el chip NFC
     public static String detect() {
         List<ChipGuess> guesses = new ArrayList<>();
 
@@ -25,7 +23,6 @@ public class NfcChipIdentifier {
         detectSt(guesses);
         detectNxpOppo(guesses);
 
-        // Elegimos la de mayor confianza
         ChipGuess best = null;
         for (ChipGuess guess : guesses) {
             if (best == null) {
@@ -36,10 +33,7 @@ public class NfcChipIdentifier {
         return best != null ? best.toString() : "Desconocido -- No se reconoce el chip";
     }
 
-    // ─────────────────────────────────────────────
-    // 🔍 Detección de cada tipo
-    // ─────────────────────────────────────────────
-
+    // Detecta dispositivos con chip Broadcom
     private static void detectBroadcom(List<ChipGuess> guesses) {
         for (String path : searchPaths("libnfc-brcm.conf")) {
             readLines(path, line -> {
@@ -48,7 +42,7 @@ public class NfcChipIdentifier {
                     if (val != null && exists(val)) {
                         String chip = "Broadcom Device " + val.replace("/dev/", "");
                         guesses.add(new ChipGuess(chip, 0.9f));
-                        return false;
+                        return false; // Ya encontrado
                     }
                 }
                 return true;
@@ -56,17 +50,7 @@ public class NfcChipIdentifier {
         }
     }
 
-    private static Pair<String, String> splitConfigLine(String line) {
-        String[] parts = line.split("=", 2);
-
-        if (parts.length == 2) {
-            return new Pair<>(parts[0].trim(), parts[1].trim().replaceAll("(^\")|(\"$)", ""));
-        }
-
-        return null;
-    }
-
-
+    // Detecta los chips en Samsung
     private static void detectSamsung(List<ChipGuess> guesses) {
         for (String path : searchPaths("libnfc-sec-vendor.conf")) {
             readLines(path, line -> {
@@ -84,6 +68,7 @@ public class NfcChipIdentifier {
         }
     }
 
+    // Detecta chips STMicroelectronics leyendo nombres de firmware
     private static void detectSt(List<ChipGuess> guesses) {
         for (String path : searchPaths("libnfc-hal-st.conf")) {
             readLines(path, line -> {
@@ -101,6 +86,7 @@ public class NfcChipIdentifier {
         }
     }
 
+    // Detecta chips NXP consultando archivos comunes o configuración directa del sistema
     private static void detectNxp(List<ChipGuess> guesses) {
         List<String> filenames = new ArrayList<>(Arrays.asList("libnfc-nxp.conf"));
 
@@ -128,6 +114,7 @@ public class NfcChipIdentifier {
         }
     }
 
+    // Detecta chips NXP en dispositivos Oppo, OnePlus, Realme
     private static void detectNxpOppo(List<ChipGuess> guesses) {
         List<String> suffixSources = Arrays.asList(
                 getSystemProp("ro.separate.soft"),
@@ -151,17 +138,20 @@ public class NfcChipIdentifier {
     }
 
     // ─────────────────────────────────────────────
-    // 🔧 Utilidades
+    // Métodos de utilidad
     // ─────────────────────────────────────────────
 
+    // Retorna directorios comunes donde buscar configuraciones NFC
     private static List<String> getSearchDirs() {
         return Arrays.asList("/vendor/etc/", "/odm/etc/", "/product/etc/", "/system/etc/", "/etc/");
     }
 
+    // Busca archivos en los directorios disponibles
     private static List<String> searchPaths(String filename) {
         return searchPaths(Collections.singletonList(filename));
     }
 
+    // Busca múltiples archivos en los directorios disponibles
     private static List<String> searchPaths(List<String> filenames) {
         List<String> found = new ArrayList<>();
         for (String dir : getSearchDirs()) {
@@ -173,6 +163,7 @@ public class NfcChipIdentifier {
         return found;
     }
 
+    // Encuentra un archivo específico en la estructura de NFC
     private static String findFile(String filename) {
         for (String dir : getSearchDirs()) {
             String path = dir + "nfc/" + filename;
@@ -181,21 +172,12 @@ public class NfcChipIdentifier {
         return null;
     }
 
-    private static String readFile(String path) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
-            StringBuilder b = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) b.append(line);
-            return b.toString().trim();
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
+    // Verifica si un archivo existe
     private static boolean exists(String path) {
         return new File(path).exists();
     }
 
+    // Lee un archivo línea por línea y ejecuta una acción por cada línea
     private static void readLines(String path, LineHandler handler) {
         try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
             String line;
@@ -205,15 +187,21 @@ public class NfcChipIdentifier {
         } catch (Exception ignored) {}
     }
 
-    private static String splitValue(String line) {
-        String[] parts = line.split("=", 2);
-        return parts.length == 2 ? parts[1].replace("\"", "").trim() : null;
+    // Lee el contenido completo de un archivo
+    private static String readFile(String path) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+            StringBuilder b = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                b.append(line);
+            }
+            return b.toString().trim();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
-    private interface LineHandler {
-        boolean handle(String line);
-    }
-
+    // Obtiene una propiedad del sistema Android
     private static String getSystemProp(String prop) {
         try {
             Process process = new ProcessBuilder("getprop", prop).start();
@@ -224,6 +212,7 @@ public class NfcChipIdentifier {
         }
     }
 
+    // Busca un sufijo de versión basado en un archivo de referencia
     private static String findSuffix(String refPath, List<String> projectNames) {
         try (BufferedReader reader = new BufferedReader(new FileReader(refPath))) {
             String line;
@@ -245,6 +234,16 @@ public class NfcChipIdentifier {
         return null;
     }
 
+    // Divide una línea de configuración clave=valor
+    private static Pair<String, String> splitConfigLine(String line) {
+        String[] parts = line.split("=", 2);
+        if (parts.length == 2) {
+            return new Pair<>(parts[0].trim(), parts[1].trim().replaceAll("(^\")|(\"$)", ""));
+        }
+        return null;
+    }
+
+    // Mapa que traduce identificadores de chips NXP a nombres amigables
     private static Map<String, String> getNxpChipMap() {
         Map<String, String> map = new HashMap<>();
         map.put("0x01", "PN547C2"); map.put("0x02", "PN65T");
@@ -254,5 +253,10 @@ public class NfcChipIdentifier {
         map.put("0x09", "PN557");   map.put("0x0A", "PN81T");
         map.put("0x0B", "SN1X0");   map.put("0x0C", "SN2X0");
         return map;
+    }
+
+
+    private interface LineHandler {
+        boolean handle(String line);
     }
 }

@@ -12,6 +12,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+
 public class LogFileAdapter extends RecyclerView.Adapter<LogFileAdapter.LogViewHolder> {
 
     private final List<File> files;
@@ -38,6 +39,7 @@ public class LogFileAdapter extends RecyclerView.Adapter<LogFileAdapter.LogViewH
                 .format(new Date(file.lastModified()));
         holder.date.setText(date);
 
+        // Al hacer clic, abre el archivo seleccionado
         holder.itemView.setOnClickListener(v -> {
             Uri uri = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", file);
             Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -51,6 +53,7 @@ public class LogFileAdapter extends RecyclerView.Adapter<LogFileAdapter.LogViewH
     public int getItemCount() {
         return files.size();
     }
+
 
     static class LogViewHolder extends RecyclerView.ViewHolder {
         TextView name, date;

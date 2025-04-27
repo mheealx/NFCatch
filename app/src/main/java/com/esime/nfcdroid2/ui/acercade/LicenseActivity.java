@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+// Actividad que muestra el contenido de la licencia de la aplicación
 public class LicenseActivity extends AppCompatActivity {
 
     @Override
@@ -18,12 +19,14 @@ public class LicenseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.actividad_licencia);
 
-        // Hacer un TextView para mostrar la licencia
-        TextView licenseTextView = findViewById(R.id.licenseTextView);
+        mostrarLicencia();
+    }
 
-        // Cargar el archivo de licencia
+    // Carga y muestra el archivo de licencia
+    private void mostrarLicencia() {
+        TextView licenseTextView = findViewById(R.id.licenseTextView);
         try {
-            InputStream inputStream = getResources().openRawResource(R.raw.licencia);  // Ruta del archivo en raw
+            InputStream inputStream = getResources().openRawResource(R.raw.licencia);
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
             StringBuilder stringBuilder = new StringBuilder();
@@ -33,9 +36,7 @@ public class LicenseActivity extends AppCompatActivity {
             }
             inputStream.close();
 
-            // Mostrar licencia en el TextView
             licenseTextView.setText(stringBuilder.toString());
-
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -56,6 +56,18 @@
                 android:layout_marginTop="8dp"
                 android:layout_gravity="center_horizontal"/>
 
+            <TextView
+                android:id="@+id/licencia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/licencia"
+                android:textStyle="italic"
+                android:textAlignment="center"
+                android:textColor="?android:textColorPrimary"
+                android:textSize="14sp"
+                android:layout_marginTop="16dp"
+                android:layout_gravity="center_horizontal"/>
+
             <!-- Descripción del proyecto -->
             <TextView
                 android:id="@+id/paragraph"

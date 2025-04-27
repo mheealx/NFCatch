@@ -23,15 +23,18 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.esime.nfcdroid2.databinding.ActivityMainBinding;
 
+import java.util.Objects;
+
+
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private AppBarConfiguration mAppBarConfiguration;
-    private ActivityMainBinding binding;
 
+    // Inicializa la pantalla principal
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        com.esime.nfcdroid2.databinding.ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         setSupportActionBar(binding.appBarMain.toolbar);
@@ -48,14 +51,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
-        // Ocultar titulos personalizados, mostrar título estático en Header
+        // Ocultar títulos dinámicos en la barra superior
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-            if (destination.getId() == R.id.nav_gallery || destination.getId() == R.id.nav_home || destination.getId() == R.id.nav_slideshow || destination.getId() == R.id.nav_informacion || destination.getId() == R.id.nav_acerca_de) {
-                getSupportActionBar().setTitle("");
+            if (destination.getId() == R.id.nav_gallery || destination.getId() == R.id.nav_home ||
+                    destination.getId() == R.id.nav_slideshow || destination.getId() == R.id.nav_informacion ||
+                    destination.getId() == R.id.nav_acerca_de) {
+                Objects.requireNonNull(getSupportActionBar()).setTitle("");
             }
         });
 
-        // Asignar el listener para manejar los ítems del menú
         navigationView.setNavigationItemSelectedListener(this);
     }
 
@@ -72,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 || super.onSupportNavigateUp();
     }
 
-    //Lanza HomeFragment (consola) como principal
+    // Lanza la HomeFragment como principal
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -90,18 +94,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    //Botón de salir de la aplicación
+    // Función de navegación en el menú
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
         if (id == R.id.salir) {
-            Intent serviceIntent = new Intent(this, ServicioSegundoPlano.class); //Inicia el servicio de segundo plano
+            Intent serviceIntent = new Intent(this, ServicioSegundoPlano.class);
             ContextCompat.startForegroundService(this, serviceIntent);
-            finish(); // Cierre de la app
+            finish();
         } else {
-            NavigationUI.onNavDestinationSelected(item, Navigation.findNavController(this, R.id.nav_host_fragment_content_main)); //Función de los demás botones
+            NavigationUI.onNavDestinationSelected(item, Navigation.findNavController(this, R.id.nav_host_fragment_content_main));
         }
+
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer != null) {
             drawer.closeDrawer(GravityCompat.START);
@@ -109,5 +114,4 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         return true;
     }
-
 }

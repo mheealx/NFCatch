@@ -3,6 +3,7 @@ package com.esime.nfcdroid2.utils;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
 
+//Lector de tecnología NFC IsoDep
 public class NfcIsoDepHelper {
 
     public static void read(Tag tag, LogCallback logger) {

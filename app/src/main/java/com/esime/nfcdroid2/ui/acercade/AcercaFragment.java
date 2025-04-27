@@ -16,45 +16,45 @@ import androidx.fragment.app.Fragment;
 
 import com.esime.nfcdroid2.R;
 
+//Pantalla de Acerca del proyecto
 public class AcercaFragment extends Fragment {
 
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_acercade, container, false);
 
-        // Botón de Licencias
-        Button licenseButton = root.findViewById(R.id.licenseButton);
-        licenseButton.setOnClickListener(v -> openLicenseActivity());
-
-        // Botón ESIME CULHUACAN
-        Button link1Button = root.findViewById(R.id.link1);
-        link1Button.setOnClickListener(v -> openLink("https://www.esimecu.ipn.mx/"));
-
-        // Botón CIC
-        Button link2Button = root.findViewById(R.id.link2);
-        link2Button.setOnClickListener(v -> openLink("https://www.ciseg.cic.ipn.mx/"));
-
-        // Actualizar el nombre de la app y la versión
+        configurarBotones(root);
         updateAppInfo(root);
 
         return root;
     }
 
+    // Configura las acciones de los botones
+    private void configurarBotones(View root) {
+        //Botón licencia
+        Button licenseButton = root.findViewById(R.id.licenseButton);
+        licenseButton.setOnClickListener(v -> openLicenseActivity());
+        //Botón ESIME CU
+        Button link1Button = root.findViewById(R.id.link1);
+        link1Button.setOnClickListener(v -> openLink("https://www.esimecu.ipn.mx/"));
+        //Botón CISEG-CIC
+        Button link2Button = root.findViewById(R.id.link2);
+        link2Button.setOnClickListener(v -> openLink("https://www.ciseg.cic.ipn.mx/"));
+    }
+
+    // Obtención del nombre y versión de la aplicación
     private void updateAppInfo(View root) {
         TextView appNameTextView = root.findViewById(R.id.appName);
         TextView appVersionTextView = root.findViewById(R.id.appVersion);
 
         try {
-            // Obtener el nombre de la aplicación y la versión
             PackageManager packageManager = getActivity().getPackageManager();
             PackageInfo packageInfo = packageManager.getPackageInfo(getActivity().getPackageName(), 0);
 
-            // Obtener el nombre de la aplicación desde los recursos
             String appName = getActivity().getApplicationInfo().loadLabel(packageManager).toString();
-            // Obtener la versión desde el packageInfo
             String appVersion = packageInfo.versionName;
 
-            // Establecer el nombre y la versión en los TextViews
             appNameTextView.setText(appName);
             appVersionTextView.setText("Versión " + appVersion);
         } catch (PackageManager.NameNotFoundException e) {
@@ -62,13 +62,13 @@ public class AcercaFragment extends Fragment {
         }
     }
 
-    // Método para abrir la actividad de la licencia
+    // Abre la actividad que muestra la licencia
     private void openLicenseActivity() {
         Intent intent = new Intent(getActivity(), LicenseActivity.class);
         startActivity(intent);
     }
 
-    // Método para abrir un enlace en el navegador
+    // Abre un enlace en el navegador
     private void openLink(String url) {
         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         startActivity(browserIntent);

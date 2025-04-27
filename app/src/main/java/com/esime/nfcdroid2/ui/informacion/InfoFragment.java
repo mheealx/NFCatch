@@ -49,7 +49,7 @@ public class InfoFragment extends Fragment {
             List<String> values = new ArrayList<>();
 
             // 1. Nombre comercial
-            String deviceName = new DeviceNames(context).formatCurrentDeviceName();
+            String deviceName = new DeviceNames(context).obtenerNombreDispositivoActual();
             titles.add("Nombre del dispositivo");
             values.add(deviceName);
 
@@ -72,7 +72,6 @@ public class InfoFragment extends Fragment {
             titles.add("Modelo del chip NFC");
             values.add(!chipName.isEmpty() ? chipName : "Desconocido");
 
-
             requireActivity().runOnUiThread(() -> {
                 // Ocultar ProgressBar y mostrar resultados
                 progressBar.setVisibility(View.GONE);
@@ -83,5 +82,4 @@ public class InfoFragment extends Fragment {
             });
         }).start();
     }
-
 }

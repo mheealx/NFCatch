@@ -3,6 +3,7 @@ package com.esime.nfcdroid2.utils;
 import android.nfc.Tag;
 import android.nfc.tech.NfcA;
 
+//Lector de tecnología NFC A
 public class NfcAHelper {
 
     public static void read(Tag tag, LogCallback logger) {

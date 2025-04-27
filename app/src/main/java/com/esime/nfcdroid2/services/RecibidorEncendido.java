@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
 
+// Receptor que se activa al reiniciar el dispositivo
 public class RecibidorEncendido extends BroadcastReceiver {
 
     @Override
@@ -14,11 +15,11 @@ public class RecibidorEncendido extends BroadcastReceiver {
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
             Log.d("BootReceiver", "Dispositivo reiniciado");
 
-            // Leer el estado de SharedPreferences
+            // Lee configuración de inicio automático
             SharedPreferences preferences = context.getSharedPreferences("config_preferences", Context.MODE_PRIVATE);
-            boolean isAutoStartEnabled = preferences.getBoolean("auto_start_service", false);
+            boolean isAutoStartEnabled = preferences.getBoolean("auto_start_service", true);
 
-            // Si el inicio automático está habilitado, iniciar el servicio
+            // Iniciar servicio si el inicio automático está habilitado
             if (isAutoStartEnabled) {
                 Intent serviceIntent = new Intent(context, ServicioSegundoPlano.class);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

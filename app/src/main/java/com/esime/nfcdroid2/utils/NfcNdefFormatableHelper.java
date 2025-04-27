@@ -3,6 +3,8 @@ package com.esime.nfcdroid2.utils;
 import android.nfc.Tag;
 import android.nfc.tech.NdefFormatable;
 
+//Lector de tecnología NFC NDEF Formatable
+
 public class NfcNdefFormatableHelper {
 
     public static void read(Tag tag, LogCallback logger) {

@@ -11,6 +11,8 @@ import com.esime.nfcdroid2.R;
 
 import java.util.List;
 
+//Información del adaptador del dispositivo
+
 public class InfoAdapter extends BaseAdapter {
 
     private final Context context;

@@ -1,5 +1,6 @@
 package com.esime.nfcdroid2.utils;
 
+//Clase que obtiene la versión y el nombre de la app para el Acerca de y el servicio en Segundo plano
 public class AppInfo {
 
     public static String getVersionName() {

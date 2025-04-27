@@ -3,6 +3,8 @@ package com.esime.nfcdroid2.utils;
 import android.nfc.Tag;
 import android.nfc.tech.MifareClassic;
 
+//Lector de tecnología Mifare Classic
+
 public class NfcMifareClassicHelper {
 
     public static void read(Tag tag, LogCallback logger) {

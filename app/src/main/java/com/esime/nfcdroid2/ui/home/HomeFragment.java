@@ -8,28 +8,20 @@ import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+
 import com.esime.nfcdroid2.R;
 import com.esime.nfcdroid2.services.ServicioSegundoPlano;
-import com.esime.nfcdroid2.utils.LogCallback;
-import com.esime.nfcdroid2.utils.LogRegistry;
-import com.esime.nfcdroid2.utils.NfcAHelper;
-import com.esime.nfcdroid2.utils.NfcBHelper;
-import com.esime.nfcdroid2.utils.NfcIsoDepHelper;
-import com.esime.nfcdroid2.utils.NfcMifareClassicHelper;
-import com.esime.nfcdroid2.utils.NfcMifareUltralightHelper;
-import com.esime.nfcdroid2.utils.NfcNdefFormatableHelper;
-import com.esime.nfcdroid2.utils.NfcNdefHelper;
-import com.esime.nfcdroid2.utils.NfcVHelper;
+import com.esime.nfcdroid2.utils.*;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
@@ -38,16 +30,20 @@ import java.util.*;
 public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListener {
 
     private static final String TAG = "NFC_LOG";
+
     private NfcAdapter nfcAdapter;
     private PendingIntent pendingIntent;
+
     private TextView consoleTextView;
     private ScrollView consoleScrollView;
     private SearchView searchView;
     private Button filterButton, saveButton, clearConsoleButton;
+
     private final StringBuilder fullLog = new StringBuilder();
     private final List<String> allLogs = new ArrayList<>();
     private final Set<String> selectedTechFilters = new HashSet<>();
     private String currentQuery = "";
+
     private final String[] techOptions = {
             "Ndef", "MifareClassic", "MifareUltralight", "NfcA", "NfcB", "NfcV", "IsoDep", "NdefFormatable"
     };
@@ -56,48 +52,18 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
 
-        consoleTextView = root.findViewById(R.id.consoleTextView);
-        consoleScrollView = root.findViewById(R.id.consoleScrollView);
-        searchView = root.findViewById(R.id.searchView);
-        filterButton = root.findViewById(R.id.filterButton);
-        saveButton = root.findViewById(R.id.saveButton);
-        clearConsoleButton = root.findViewById(R.id.clearConsoleButton);
+        inicializarComponentes(root);
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(requireContext());
-
         if (nfcAdapter == null) {
-            disableUi();
-
-            root.post(() -> consoleTextView.setText("Este dispositivo no es compatible con NFC."));
-            Toast.makeText(requireContext(), "La aplicación se cerrará automáticamente en 5 segundos.", Toast.LENGTH_LONG).show();
-
-            new android.os.Handler().postDelayed(() -> {
-                // Detener el servicio en segundo plano
-                Intent stopIntent = new Intent(requireContext(), ServicioSegundoPlano.class);
-                requireContext().stopService(stopIntent);
-
-                // Finalizar la actividad y el proceso
-                requireActivity().finishAffinity();
-                android.os.Process.killProcess(android.os.Process.myPid());
-                System.exit(0);
-            }, 5000);
-
+            manejarDispositivoSinNfc(root);
             return root;
         }
 
-
+        configurarListeners();
 
         Intent intent = new Intent(requireActivity(), requireActivity().getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         pendingIntent = PendingIntent.getActivity(requireContext(), 0, intent, PendingIntent.FLAG_MUTABLE);
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override public boolean onQueryTextSubmit(String query) { currentQuery = query; applyFilters(); return true; }
-            @Override public boolean onQueryTextChange(String newText) { currentQuery = newText; applyFilters(); return true; }
-        });
-
-        filterButton.setOnClickListener(v -> showFilterDialog());
-        saveButton.setOnClickListener(v -> guardarLog());
-        clearConsoleButton.setOnClickListener(v -> clearConsole());
 
         return root;
     }
@@ -108,7 +74,7 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
 
         if (nfcAdapter != null) {
             if (!nfcAdapter.isEnabled()) {
-                showNfcDisabledDialog();
+                mostrarDialogoNfcDesactivado();
             } else {
                 nfcAdapter.enableForegroundDispatch(requireActivity(), pendingIntent, null, null);
             }
@@ -119,7 +85,7 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
             allLogs.add(linea);
             fullLog.append(linea).append("\n");
         }
-        applyFilters();
+        aplicarFiltros();
 
         if (getActivity() != null && getActivity().getIntent() != null) {
             handleNfcIntent(getActivity().getIntent());
@@ -133,6 +99,45 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         LogRegistry.removeListener();
     }
 
+    // Inicializa componentes de la interfaz
+    private void inicializarComponentes(View root) {
+        consoleTextView = root.findViewById(R.id.consoleTextView);
+        consoleScrollView = root.findViewById(R.id.consoleScrollView);
+        searchView = root.findViewById(R.id.searchView);
+        filterButton = root.findViewById(R.id.filterButton);
+        saveButton = root.findViewById(R.id.saveButton);
+        clearConsoleButton = root.findViewById(R.id.clearConsoleButton);
+    }
+
+    // Configura los listeners de botones y búsqueda
+    private void configurarListeners() {
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override public boolean onQueryTextSubmit(String query) { currentQuery = query; aplicarFiltros(); return true; }
+            @Override public boolean onQueryTextChange(String newText) { currentQuery = newText; aplicarFiltros(); return true; }
+        });
+
+        filterButton.setOnClickListener(v -> mostrarDialogoFiltros());
+        saveButton.setOnClickListener(v -> guardarLog());
+        clearConsoleButton.setOnClickListener(v -> limpiarConsola());
+    }
+
+    // Muestra si el dispositivo no tiene NFC y cierra la app después de 5 segundos
+    private void manejarDispositivoSinNfc(View root) {
+        disableUi();
+
+        root.post(() -> consoleTextView.setText("Este dispositivo no es compatible con NFC."));
+        Toast.makeText(requireContext(), "La aplicación se cerrará automáticamente en 5 segundos.", Toast.LENGTH_LONG).show();
+
+        new android.os.Handler().postDelayed(() -> {
+            Intent stopIntent = new Intent(requireContext(), ServicioSegundoPlano.class);
+            requireContext().stopService(stopIntent);
+            requireActivity().finishAffinity();
+            android.os.Process.killProcess(android.os.Process.myPid());
+            System.exit(0);
+        }, 5000);
+    }
+
+    // Desactiva los botones de la UI si el dispositivo no tiene NFC
     private void disableUi() {
         searchView.setEnabled(false);
         filterButton.setEnabled(false);
@@ -140,7 +145,8 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         clearConsoleButton.setEnabled(false);
     }
 
-    private void clearConsole() {
+    // Limpia la consola de logs
+    private void limpiarConsola() {
         fullLog.setLength(0);
         allLogs.clear();
         currentQuery = "";
@@ -150,10 +156,11 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         Toast.makeText(requireContext(), "Consola reiniciada", Toast.LENGTH_SHORT).show();
     }
 
-    private void showNfcDisabledDialog() {
+    // Muestra un diálogo si el NFC está apagado
+    private void mostrarDialogoNfcDesactivado() {
         new AlertDialog.Builder(requireContext())
                 .setTitle("NFC DESACTIVADO")
-                .setMessage("El dispositivo tiene el chip NFC APAGADO.\nPor favor, enciéndalo para continuar.")
+                .setMessage("El dispositivo tiene el chip NFC APAGADO.\nPor favor, enciéndelo para continuar.")
                 .setCancelable(false)
                 .setPositiveButton("Ir a configuración", (dialog, which) -> {
                     Intent intent = new Intent(android.provider.Settings.ACTION_NFC_SETTINGS);
@@ -172,15 +179,16 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
                 consoleTextView.setText(current + newLog + "\n");
                 consoleScrollView.post(() -> consoleScrollView.fullScroll(View.FOCUS_DOWN));
             } else {
-                applyFilters();
+                aplicarFiltros();
             }
         });
     }
 
+    // Maneja la detección de la etiqueta NFC
     public void handleNfcIntent(Intent intent) {
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
         if (tag != null) {
-            ServicioSegundoPlano.marcarLecturaNfc(); // ✅ Evitar falso positivo de pantalla apagada
+            ServicioSegundoPlano.marcarLecturaNfc();
 
             appendLog("D", TAG, "Tag detectado");
             appendLog("D", TAG, "UID: " + bytesToHex(tag.getId()));
@@ -203,6 +211,7 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         }
     }
 
+    // Añade un log al registro
     private void appendLog(String level, String tag, String message) {
         String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault()).format(new Date());
         int pid = android.os.Process.myPid();
@@ -218,10 +227,10 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         allLogs.add(formatted);
         fullLog.append(formatted).append("\n");
 
-        applyFilters();
-
+        aplicarFiltros();
     }
 
+    // Convierte el nivel de log a constante de Android
     private int getAndroidLogLevel(String level) {
         switch (level.toUpperCase()) {
             case "V": return Log.VERBOSE;
@@ -233,7 +242,8 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         }
     }
 
-    private void applyFilters() {
+    // Aplica filtros de búsqueda y tecnologías
+    private void aplicarFiltros() {
         List<String> finalLogs = new ArrayList<>();
 
         for (String log : allLogs) {
@@ -242,14 +252,15 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
             if (matchesQuery && matchesFilter) finalLogs.add(log);
         }
 
-        StringBuilder visibleLog = new StringBuilder("NFC:\n");
+        StringBuilder visibleLog = new StringBuilder("NFC:/\n");
         for (String log : finalLogs) visibleLog.append(log).append("\n");
 
         consoleTextView.setText(visibleLog.toString());
         consoleScrollView.post(() -> consoleScrollView.fullScroll(View.FOCUS_DOWN));
     }
 
-    private void showFilterDialog() {
+    // Muestra diálogo de filtro por tecnologías
+    private void mostrarDialogoFiltros() {
         boolean[] checkedItems = new boolean[techOptions.length];
         for (int i = 0; i < techOptions.length; i++)
             checkedItems[i] = selectedTechFilters.contains(techOptions[i]);
@@ -260,15 +271,16 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
                     String tech = techOptions[which];
                     if (isChecked) selectedTechFilters.add(tech); else selectedTechFilters.remove(tech);
                 })
-                .setPositiveButton("Aplicar", (dialog, which) -> applyFilters())
+                .setPositiveButton("Aplicar", (dialog, which) -> aplicarFiltros())
                 .setNegativeButton("Cancelar", null)
                 .setNeutralButton("Deseleccionar todo", (dialog, which) -> {
                     selectedTechFilters.clear();
-                    applyFilters();
+                    aplicarFiltros();
                     Toast.makeText(requireContext(), "Filtros retirados", Toast.LENGTH_SHORT).show();
                 }).show();
     }
 
+    // Guarda el log actual en almacenamiento externo
     private void guardarLog() {
         try {
             File documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
@@ -287,10 +299,10 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         }
     }
 
+    // Convierte un arreglo de bytes a representación hexadecimal para el UID del chip
     private String bytesToHex(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) sb.append(String.format("%02X ", b));
         return sb.toString().trim();
     }
-
 }

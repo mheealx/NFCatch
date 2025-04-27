@@ -34,6 +34,7 @@ import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+// Servicio que gestiona la detección NFC, eventos de pantalla y generación de notificaciones
 public class ServicioSegundoPlano extends Service {
 
     private static final String CHANNEL_ID = "nfc_background_channel";
@@ -41,18 +42,18 @@ public class ServicioSegundoPlano extends Service {
     private static final String CUSTOM_SOUND_CHANNEL_ID = "nfc_custom_sound_channel";
     private static final String TAG = "NFC_SERVICE";
     private static final String ACTION_HANDLE_TAG = "com.esime.nfcdroid2.ACTION_HANDLE_TAG";
-
     private BroadcastReceiver screenReceiver;
     private boolean pantallaEncendida = true;
-
     private static boolean ultimaFueLecturaNfc = false;
     private static long ultimaLecturaTimestamp = 0;
 
+    // Marca la última lectura de un tag NFC
     public static void marcarLecturaNfc() {
         ultimaFueLecturaNfc = true;
         ultimaLecturaTimestamp = System.currentTimeMillis();
     }
 
+    // Inicialización del servicio
     @Override
     public void onCreate() {
         super.onCreate();
@@ -60,7 +61,7 @@ public class ServicioSegundoPlano extends Service {
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("NFCDroid activo")
-                .setContentText("Escuchando etiquetas NFC en segundo plano")
+                .setContentText("Escuchando eventos NFC en segundo plano")
                 .setSmallIcon(R.mipmap.ic_launcher_round)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true)
@@ -70,6 +71,7 @@ public class ServicioSegundoPlano extends Service {
         registrarBroadcastPantalla();
     }
 
+    // Registra si la pantalla está encendida o apagada
     private void registrarBroadcastPantalla() {
         screenReceiver = new BroadcastReceiver() {
             @Override
@@ -82,7 +84,7 @@ public class ServicioSegundoPlano extends Service {
 
                 NfcAdapter adapter = NfcAdapter.getDefaultAdapter(context);
                 boolean isEnabled = adapter != null && adapter.isEnabled();
-                String estadoNfc = isEnabled ? "NFC ACTIVO" : "NFC DESACTIVADO";
+                String estadoNfc = isEnabled ? "NFC ENCENDIDO" : "NFC APAGADO";
 
                 if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
                     if (!pantallaEncendida) {
@@ -104,6 +106,7 @@ public class ServicioSegundoPlano extends Service {
         registerReceiver(screenReceiver, filter);
     }
 
+    // Maneja comandos recibidos por el servicio
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this);
@@ -124,6 +127,7 @@ public class ServicioSegundoPlano extends Service {
         return START_STICKY;
     }
 
+    // Procesa el tag NFC recibido
     private void procesarTag(Tag tag) {
         marcarLecturaNfc();
         List<String> logs = new ArrayList<>();
@@ -162,6 +166,7 @@ public class ServicioSegundoPlano extends Service {
         enviarNotificacion();
     }
 
+    // Envía una notificación basada en la configuración hecha por el usuario
     private void enviarNotificacion() {
         SharedPreferences preferences = getSharedPreferences("config_preferences", MODE_PRIVATE);
         String modo = preferences.getString("notification_mode", "predeterminado");
@@ -189,7 +194,7 @@ public class ServicioSegundoPlano extends Service {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, canalNotificacion)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("HUBO UN EVENTO NFC")
+                .setContentTitle("¡TUVISTE UN EVENTO NFC!")
                 .setContentText("Revisa el log en el historial de la app")
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
@@ -200,6 +205,7 @@ public class ServicioSegundoPlano extends Service {
         nm.notify(2, noti);
     }
 
+    // Verifica si se encuentra dentro del horario de silencio programado
     private boolean verificarHorarioSilencio(SharedPreferences preferences) {
         int startHour = preferences.getInt("silence_start_hour", 22);
         int startMinute = preferences.getInt("silence_start_minute", 0);
@@ -221,6 +227,7 @@ public class ServicioSegundoPlano extends Service {
         }
     }
 
+    // Creación de los canales de notificación
     private void recrearCanalesNotificaciones() {
         crearCanalNotificacion();
         crearCanalSilencioProgramado();
@@ -238,10 +245,10 @@ public class ServicioSegundoPlano extends Service {
 
             NotificationChannel canal = new NotificationChannel(
                     CHANNEL_ID,
-                    "Servicio NFC en segundo plano",
+                    "Canal predeterminado",
                     NotificationManager.IMPORTANCE_LOW
             );
-            canal.setDescription("NFCDroid registra actividad del chip NFC");
+            canal.setDescription("Es el canal que tiene el audio predeterminado de notificación");
             canal.setSound(null, null);
             canal.enableVibration(false);
             manager.createNotificationChannel(canal);
@@ -277,10 +284,10 @@ public class ServicioSegundoPlano extends Service {
 
             NotificationChannel canal = new NotificationChannel(
                     SILENCE_MODE_CHANNEL_ID,
-                    "Notificaciones Silencio Programado",
+                    "Canal silencioso",
                     NotificationManager.IMPORTANCE_HIGH
             );
-            canal.setDescription("Notificaciones sin sonido pero con vibración del sistema");
+            canal.setDescription("No tiene sonido pero si genera vibración");
             canal.setSound(null, null);
             canal.enableVibration(true);
 
@@ -310,7 +317,7 @@ public class ServicioSegundoPlano extends Service {
                         "Canal Personalizado",
                         NotificationManager.IMPORTANCE_HIGH
                 );
-                canal.setDescription("Canal con sonido personalizado elegido por el usuario");
+                canal.setDescription("Canal con sonido personalizado que elige el usuario");
 
                 AudioAttributes attrs = new AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_NOTIFICATION)
@@ -326,6 +333,7 @@ public class ServicioSegundoPlano extends Service {
         }
     }
 
+    // Guardado del log en memoria interna
     private void guardarLog(String contenido) {
         try {
             File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "NFCDroid");
@@ -345,11 +353,13 @@ public class ServicioSegundoPlano extends Service {
         }
     }
 
+    // Formato de Log
     private String formatoLog(String timestamp, int pid, int tid, String tag, String pkg, String lvl, String msg) {
         return String.format(Locale.getDefault(), "%s %5d-%5d %-25s %-35s %-1s  %s",
                 timestamp, pid, tid, tag, pkg, lvl, msg);
     }
 
+    // Registra un evento de pantalla y estado NFC
     private void registrarEvento(String estadoPantalla, String estadoNfc) {
         String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault()).format(new Date());
         int pid = android.os.Process.myPid();

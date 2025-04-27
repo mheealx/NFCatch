@@ -3,6 +3,8 @@ package com.esime.nfcdroid2.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+//Formato de registro del Log
+
 public class LogRegistry {
     private static final List<String> logEvents = new ArrayList<>();
     private static LogUpdateListener listener;

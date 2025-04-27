@@ -7,6 +7,8 @@ import android.nfc.tech.Ndef;
 
 import java.nio.charset.StandardCharsets;
 
+//Lector de tecnología NFC NDEF
+
 public class NfcNdefHelper {
 
     public static void read(Tag tag, LogCallback logger) {
