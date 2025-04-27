@@ -64,7 +64,6 @@
                     android:padding="16dp"
                     android:gravity="center_vertical">
 
-                    <!-- Switch para activar/desactivar el silencio programado -->
                     <TextView
                         android:id="@+id/inicioauto_label"
                         android:layout_width="wrap_content"
@@ -80,6 +79,18 @@
                         android:layout_height="wrap_content"
                         android:checked="false"/>
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/nota_reinicio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="\n\n\n\nNota: Se sugiere desactivar la optimización de batería desde los ajustes del teléfono\npara evitar problemas con la función."
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:textAlignment="center"
+                    android:textAllCaps="true"
+                    android:layout_marginBottom="8dp"/>
             </androidx.cardview.widget.CardView>
 
 
@@ -165,6 +176,7 @@
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#000000"
+                        android:textAllCaps="true"
                         android:textAlignment="center"
                         android:layout_marginBottom="8dp"/>
                 </LinearLayout>
