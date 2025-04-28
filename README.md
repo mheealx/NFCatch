@@ -32,3 +32,8 @@ purposes.
 ## Contact
 
 * [Luis Alejandro Vazquez Zarate](mailto:lvazquezz1800@alumno.ipn.mx)
+
+
+## Credits
+- [NFCGate](https://github.com/nfcgate/nfcgate/) (Licensed under
+  the [Apache License v2.0](http://opensource.org/licenses/Apache-2.0)):  NFC Chip Detection, Device Name and NFC technologies detection
