@@ -45,7 +45,7 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
     private String currentQuery = "";
 
     private final String[] techOptions = {
-            "Ndef", "MifareClassic", "MifareUltralight", "NfcA", "NfcB", "NfcV", "IsoDep", "NdefFormatable"
+            "NfcA","NfcB", "NfcV","NfcF","IsoDep","Ndef","NdefFormatable","MifareClassic", "MifareUltralight"
     };
 
     @Override
@@ -204,6 +204,7 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
                     case "android.nfc.tech.MifareUltralight": NfcMifareUltralightHelper.read(tag, logger); break;
                     case "android.nfc.tech.NfcA": NfcAHelper.read(tag, logger); break;
                     case "android.nfc.tech.NfcB": NfcBHelper.read(tag, logger); break;
+                    case "android.nfc.tech.NfcF": NfcFHelper.read(tag, logger); break;
                     case "android.nfc.tech.NfcV": NfcVHelper.read(tag, logger); break;
                     case "android.nfc.tech.IsoDep": NfcIsoDepHelper.read(tag, logger); break;
                 }
