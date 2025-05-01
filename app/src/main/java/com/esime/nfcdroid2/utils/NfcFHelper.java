@@ -3,19 +3,20 @@ package com.esime.nfcdroid2.utils;
 import android.nfc.Tag;
 import android.nfc.tech.NfcF;
 
-// Lector de tecnología NFC-F
 public class NfcFHelper {
 
     public static void read(Tag tag, LogCallback logger) {
+        NfcF nfcF = null;
+
         try {
             // Obtener el objeto NfcF desde el tag
-            NfcF nfcF = NfcF.get(tag);
+            nfcF = NfcF.get(tag);
             if (nfcF != null) {
                 nfcF.connect();
                 logger.log("D", "NfcF", "NFC-F detectado");
 
                 // Enviar un comando para leer datos, por ejemplo, el comando REQA (Request for Answer to Request)
-                byte[] command = new byte[]{(byte) 0x26};
+                byte[] command = new byte[]{(byte) 0x26}; // REQA comando
                 byte[] response = nfcF.transceive(command);
 
                 // Mostrar la respuesta obtenida del tag
@@ -27,11 +28,22 @@ public class NfcFHelper {
                 byte[] tagId = tag.getId();
                 logger.log("D", "NfcF", "Tag ID: " + bytesToHex(tagId));
 
-                // Cerrar la conexión con el tag
-                nfcF.close();
+            } else {
+                logger.log("E", "NfcF", "No se pudo obtener NfcF.");
             }
+
         } catch (Exception e) {
             logger.log("E", "NfcF", "Error: " + e.getMessage());
+        } finally {
+            try {
+                // Asegurarse de cerrar la conexión con el tag correctamente
+                if (nfcF != null && nfcF.isConnected()) {
+                    nfcF.close();
+                    logger.log("D", "NfcF", "Conexión con NFC-F cerrada correctamente.");
+                }
+            } catch (Exception e) {
+                logger.log("E", "NfcF", "Error cerrando la conexión con el tag: " + e.getMessage());
+            }
         }
     }
 
