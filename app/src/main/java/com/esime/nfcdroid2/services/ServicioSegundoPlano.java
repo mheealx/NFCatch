@@ -137,7 +137,11 @@ public class ServicioSegundoPlano extends Service {
         int tid = android.os.Process.myTid();
         String pkg = getPackageName();
 
+        // Agregar identificación del dispositivo
+        logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "D", "--------------------------------------------------------------------------------------"));
         logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "D", "Tag detectado"));
+        identificarDispositivo(tag, logs, timestamp, pid, tid, pkg);
+        logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "D", "--------------------------------------------------------------------------------------"));
         logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "D", "UID: " + bytesToHex(tag.getId())));
         logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "D", "Techs: " + Arrays.toString(tag.getTechList())));
 
@@ -166,6 +170,53 @@ public class ServicioSegundoPlano extends Service {
         guardarLog(contenido.toString());
         enviarNotificacion();
     }
+
+    // Método para identificar el tipo de dispositivo NFC
+    private void identificarDispositivo(Tag tag, List<String> logs, String timestamp, int pid, int tid, String pkg) {
+        String[] techs = tag.getTechList();
+        String uid = bytesToHex(tag.getId());
+
+        // Identificación de dispositivos móviles (Google Pay, Apple Pay, etc.)
+        if (uid.startsWith("08")) {
+            logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "I", "Dispositivo: Teléfono móvil"));
+        }
+        // Identificación de llave de seguridad Yubico
+        else if (Arrays.asList(techs).contains("android.nfc.tech.IsoDep") &&
+                Arrays.asList(techs).contains("android.nfc.tech.NfcA") &&
+                Arrays.asList(techs).contains("android.nfc.tech.Ndef")) {
+            logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "I", "Dispositivo: Yubikey"));
+        }
+        // Identificación de dispositivos de audio
+        else if (Arrays.asList(techs).contains("android.nfc.tech.NfcV") ||
+                Arrays.asList(techs).contains("android.nfc.tech.NfcF")) {
+            logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "I", "Dispositivo: Bocina o dispositivo de audio"));
+        }
+        // Identificación de tags NFC con soporte NDEF
+        else if (Arrays.asList(techs).contains("android.nfc.tech.Ndef")) {
+            logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "I", "Dispositivo: Tag NFC con NDEF"));
+        }
+        // Identificación de tarjetas de transporte público
+        else if (Arrays.asList(techs).contains("android.nfc.tech.IsoDep") &&
+                Arrays.asList(techs).contains("android.nfc.tech.NfcB")) {
+            logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "I", "Dispositivo: Tarjeta de Metro"));
+        }
+        // Identificación de dispositivo para automóvil
+        else if (Arrays.asList(techs).contains("android.nfc.tech.NfcA") &&
+                Arrays.asList(techs).contains("android.nfc.tech.MifareUltralight") &&
+                Arrays.asList(techs).contains("android.nfc.tech.Ndef")) {
+            logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "I", "Dispositivo: Mi TAG"));
+        }
+        // Identificación de tarjetas bancarias
+        else if (Arrays.asList(techs).contains("android.nfc.tech.IsoDep") &&
+                Arrays.asList(techs).contains("android.nfc.tech.NfcA")) {
+            logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "I", "Dispositivo: Tarjeta Bancaria"));
+        }
+        // Dispositivo desconocido
+        else {
+            logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "I", "Dispositivo: Desconocido"));
+        }
+    }
+
 
     // Envía una notificación basada en la configuración hecha por el usuario
     private void enviarNotificacion() {
