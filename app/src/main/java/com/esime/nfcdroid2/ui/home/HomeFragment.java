@@ -190,9 +190,14 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         if (tag != null) {
             ServicioSegundoPlano.marcarLecturaNfc();
 
+            // Llamada al nuevo método identificarDispositivo
+            appendLog("D", TAG, "--------------------------------------------------------------------------------------\n");
             appendLog("D", TAG, "Tag detectado");
+            identificarDispositivo(tag);
+            appendLog("D", TAG, "--------------------------------------------------------------------------------------\n");
             appendLog("D", TAG, "UID: " + bytesToHex(tag.getId()));
             appendLog("D", TAG, "Techs: " + Arrays.toString(tag.getTechList()));
+
 
             LogCallback logger = this::appendLog;
 
@@ -211,6 +216,55 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
             }
         }
     }
+
+
+    private void identificarDispositivo(Tag tag) {
+        // Obtiene las tecnologías detectadas en el tag
+        String[] techs = tag.getTechList();
+        String uid = bytesToHex(tag.getId());
+
+        // Identificación de dispositivos móviles (Pueden ser solo el dispositivo, Google Pay o Apple Pay) (especialmente si el UID empieza con "08")
+        if (uid.startsWith("08")) {
+            appendLog("I", TAG, "Dispositivo: Teléfono móvil\n");
+        }
+
+
+        // Identificación de llave de seguridad de marca Yubico
+        else if (Arrays.asList(techs).contains("android.nfc.tech.IsoDep") && Arrays.asList(techs).contains("android.nfc.tech.NfcA") && Arrays.asList(techs).contains("android.nfc.tech.Ndef")) {
+            appendLog("I", TAG, "Dispositivo: Yubikey\n");
+        }
+
+        // Identificación de dispositivos de audio
+        else if (Arrays.asList(techs).contains("android.nfc.tech.NfcV") || Arrays.asList(techs).contains("android.nfc.tech.NfcF")) {
+            appendLog("I", TAG, "Dispositivo: Bocina o dispositivo de audio\n");
+        }
+
+        // Identificación de tags NFC con soporte NDEF
+        else if (Arrays.asList(techs).contains("android.nfc.tech.Ndef")) {
+            appendLog("I", TAG, "Dispositivo: Tag NFC con NDEF\n");
+        }
+
+        // Identificación de tarjetas de transporte público
+        else if (Arrays.asList(techs).contains("android.nfc.tech.IsoDep") && Arrays.asList(techs).contains("android.nfc.tech.NfcB")) {
+            appendLog("I", TAG, "Dispositivo: Tarjeta de Metro\n");
+        }
+
+        // Identificación de dispositivo para automóvil
+        else if (Arrays.asList(techs).contains("android.nfc.tech.NfcA") && Arrays.asList(techs).contains("android.nfc.tech.MifareUltralight") && Arrays.asList(techs).contains("android.nfc.tech.Ndef")) {
+            appendLog("I", TAG, "Dispositivo: Mi TAG\n");
+        }
+
+        // Identificación de tarjetas bancarias
+        else if (Arrays.asList(techs).contains("android.nfc.tech.IsoDep") && Arrays.asList(techs).contains("android.nfc.tech.NfcA")) {
+            appendLog("I", TAG, "Dispositivo: Tarjeta Bancaria\n");
+        }
+
+        // **Dispositivo desconocido**: Si no se puede identificar
+        else {
+            appendLog("I", TAG, "Dispositivo: Desconocido\n");
+        }
+    }
+
 
     // Añade un log al registro
     private void appendLog(String level, String tag, String message) {
@@ -235,7 +289,6 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
     private int getAndroidLogLevel(String level) {
         switch (level.toUpperCase()) {
             case "V": return Log.VERBOSE;
-            case "D": return Log.DEBUG;
             case "I": return Log.INFO;
             case "W": return Log.WARN;
             case "E": return Log.ERROR;
