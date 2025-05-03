@@ -215,6 +215,8 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
                 }
             }
         }
+        requireActivity().setIntent(new Intent());
+
     }
 
 

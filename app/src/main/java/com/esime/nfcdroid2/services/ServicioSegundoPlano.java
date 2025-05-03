@@ -15,6 +15,8 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.media.AudioAttributes;
 import android.net.Uri;
+import android.nfc.NdefMessage;
+import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.os.Build;
@@ -137,7 +139,6 @@ public class ServicioSegundoPlano extends Service {
         int tid = android.os.Process.myTid();
         String pkg = getPackageName();
 
-        // Agregar identificación del dispositivo
         logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "D", "--------------------------------------------------------------------------------------"));
         logs.add(formatoLog(timestamp, pid, tid, TAG, pkg, "D", "Tag detectado"));
         identificarDispositivo(tag, logs, timestamp, pid, tid, pkg);
@@ -149,7 +150,52 @@ public class ServicioSegundoPlano extends Service {
 
         for (String tech : tag.getTechList()) {
             switch (tech) {
-                case "android.nfc.tech.Ndef": NfcNdefHelper.read(tag, logger); break;
+                case "android.nfc.tech.Ndef":
+                    NfcNdefHelper.read(tag, logger);
+
+                    // EXTRA: abrir navegador si es una URL
+                    try {
+                        android.nfc.tech.Ndef ndef = android.nfc.tech.Ndef.get(tag);
+                        if (ndef != null) {
+                            ndef.connect();
+                            NdefMessage message = ndef.getNdefMessage();
+                            if (message != null && message.getRecords().length > 0) {
+                                NdefRecord record = message.getRecords()[0];
+                                if (record.getTnf() == NdefRecord.TNF_WELL_KNOWN &&
+                                        Arrays.equals(record.getType(), NdefRecord.RTD_URI)) {
+
+                                    byte[] payload = record.getPayload();
+                                    String[] uriPrefixes = new String[] {
+                                            "", "http://www.", "https://www.", "http://", "https://",
+                                            "tel:", "mailto:", "ftp://anonymous:anonymous@", "ftp://ftp.",
+                                            "ftps://", "sftp://", "smb://", "nfs://", "ftp://", "dav://",
+                                            "news:", "telnet://", "imap:", "rtsp://", "urn:", "pop:", "sip:",
+                                            "sips:", "tftp:", "btspp://", "btl2cap://", "btgoep://",
+                                            "tcpobex://", "irdaobex://", "file://", "urn:epc:id:",
+                                            "urn:epc:tag:", "urn:epc:pat:", "urn:epc:raw:", "urn:epc:",
+                                            "urn:nfc:","android.com:pkg:","file://", "geo:", "git://","sms:","google.navigation:"
+                                    };
+
+                                    int prefixIndex = payload[0] & 0xFF;
+                                    String prefix = (prefixIndex < uriPrefixes.length) ? uriPrefixes[prefixIndex] : "";
+                                    String uri = prefix + new String(payload, 1, payload.length - 1, "UTF-8");
+
+                                    Log.d(TAG, "URL detectada desde NDEF: " + uri);
+
+                                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                                    browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                    startActivity(browserIntent);
+                                }
+
+                            }
+                            ndef.close();
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error al leer NDEF para URL: " + e.getMessage());
+                    }
+
+                    break;
+
                 case "android.nfc.tech.NdefFormatable": NfcNdefFormatableHelper.read(tag, logger); break;
                 case "android.nfc.tech.MifareClassic": NfcMifareClassicHelper.read(tag, logger); break;
                 case "android.nfc.tech.MifareUltralight": NfcMifareUltralightHelper.read(tag, logger); break;
@@ -170,6 +216,7 @@ public class ServicioSegundoPlano extends Service {
         guardarLog(contenido.toString());
         enviarNotificacion();
     }
+
 
     // Método para identificar el tipo de dispositivo NFC
     private void identificarDispositivo(Tag tag, List<String> logs, String timestamp, int pid, int tid, String pkg) {
@@ -422,6 +469,13 @@ public class ServicioSegundoPlano extends Service {
         Log.i(TAG, log);
         LogRegistry.add(log);
     }
+
+    private boolean isAppInForeground() {
+        android.app.ActivityManager.RunningAppProcessInfo appProcessInfo = new android.app.ActivityManager.RunningAppProcessInfo();
+        android.app.ActivityManager.getMyMemoryState(appProcessInfo);
+        return appProcessInfo.importance == android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND;
+    }
+
 
     @Override
     public void onDestroy() {

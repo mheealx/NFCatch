@@ -7,7 +7,8 @@
     <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -27,14 +28,14 @@
         android:theme="@style/Theme.NFCDroid"
         tools:targetApi="31">
 
-        <!-- Splash inicial solo la primera vez -->
+        <!-- Splash screen -->
         <activity
             android:name=".SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.NFCDroid.NoActionBar">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
@@ -42,23 +43,31 @@
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:theme="@style/Theme.NFCDroid.NoActionBar"
             android:launchMode="singleTop"
+            android:theme="@style/Theme.NFCDroid.NoActionBar"
             android:exported="true" />
 
-        <!-- Lectura NFC -->
+        <!-- Actividad para manejar lectura NFC -->
         <activity
             android:name=".NfcReaderActivity"
             android:launchMode="singleTask"
             android:exported="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
 
+            <!-- Manejo de tags con esquema http y https -->
             <intent-filter>
                 <action android:name="android.nfc.action.NDEF_DISCOVERED" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="*/*" />
+                <data android:scheme="http" />
             </intent-filter>
 
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="https" />
+            </intent-filter>
+
+            <!-- Tags sin esquema definido -->
             <intent-filter>
                 <action android:name="android.nfc.action.TECH_DISCOVERED" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -74,7 +83,7 @@
                 android:resource="@xml/nfc_tech_filter" />
         </activity>
 
-        <!-- Apertura de archivos (FileProvider) -->
+        <!-- FileProvider para archivos -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -85,14 +94,14 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- Servicio segundo plano -->
+        <!-- Servicio en segundo plano -->
         <service
             android:name=".services.ServicioSegundoPlano"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
 
-        <!-- Arranque tras reinicio -->
+        <!-- Recepción tras reinicio del dispositivo -->
         <receiver
             android:name=".services.RecibidorEncendido"
             android:enabled="true"
@@ -102,10 +111,9 @@
             </intent-filter>
         </receiver>
 
-        <!-- Acerca de / Licencia -->
+        <!-- Actividad de licencia / acerca de -->
         <activity
             android:name=".ui.acercade.LicenseActivity"
             android:label="Licencia" />
-
     </application>
 </manifest>
