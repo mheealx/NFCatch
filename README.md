@@ -1,5 +1,17 @@
-![NFCatch](https://github.com/mheealx/NFCatch/raw/master/.readme/logo.png)
-NFCatch
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/mheealx/NFCatch/raw/master/.readme/logo completo blanco.png" />
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/mheealx/NFCatch/raw/master/.readme/logo completo.png" />
+  <img 
+    src="https://github.com/mheealx/NFCatch/raw/master/.readme/logo completo blanco.png" 
+    alt="NFCatch logo" 
+    width="400"  <!-- Ajusta este valor según necesites -->
+    height="auto"  <!-- Mantiene la proporción -->
+  />
+</picture>
+
+
+ > Registremos cada interacción
+
 =======
 
 ## Notice
