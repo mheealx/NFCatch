@@ -20,14 +20,14 @@ plugins {
 
 android {
     namespace 'com.esime.nfcdroid2'
-    compileSdk 35
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.mheealx.nfcatch"
         minSdk 27
         targetSdk 35
-        versionCode 3
-        versionName "2.13"
+        versionCode 1
+        versionName "2.13.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -159,7 +159,7 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
 
     // Muestra un diálogo si el NFC está apagado
     private void mostrarDialogoNfcDesactivado() {
-        new AlertDialog.Builder(requireContext())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle("NFC DESACTIVADO")
                 .setMessage("El dispositivo tiene el chip NFC APAGADO.\nPor favor, enciéndelo para continuar.")
                 .setCancelable(false)
