@@ -12,7 +12,6 @@
 
  > Registremos cada interacción
 
-=======
 
 ## Notice
 
