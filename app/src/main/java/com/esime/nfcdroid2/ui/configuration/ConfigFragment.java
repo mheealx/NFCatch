@@ -26,6 +26,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.esime.nfcdroid2.databinding.FragmentConfigBinding;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import java.io.File;
 import java.util.Calendar;
 
@@ -140,7 +142,7 @@ public class ConfigFragment extends Fragment {
     // Reestablece valores de configuración a los predeterminados
     private void reestablecerValoresPredeterminados() {
         SharedPreferences.Editor editor = preferences.edit();
-        new AlertDialog.Builder(getContext())
+        new MaterialAlertDialogBuilder(getContext())
                 .setTitle("¿Estás seguro?")
                 .setMessage("¿Deseas reestablecer los valores por defecto?")
                 .setPositiveButton("Sí", (dialog, which) -> {
@@ -162,12 +164,12 @@ public class ConfigFragment extends Fragment {
 
     // Eliminación de logs
     private void eliminarLogsGuardados() {
-        new AlertDialog.Builder(getContext())
+        new MaterialAlertDialogBuilder(getContext())
                 .setTitle("¿Eliminar logs?")
                 .setMessage("¿Estás seguro que deseas eliminar todos los logs almacenados?")
                 .setPositiveButton("Sí", (dialog, which) -> {
                     File documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-                    File appDir = new File(documentsDir, "NFCDroid");
+                    File appDir = new File(documentsDir, "NFCatch");
 
                     if (appDir.exists() && appDir.isDirectory()) {
                         File[] archivos = appDir.listFiles();

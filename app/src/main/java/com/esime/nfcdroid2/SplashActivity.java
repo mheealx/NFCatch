@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 
 import com.esime.nfcdroid2.services.ServicioSegundoPlano;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +96,7 @@ public class SplashActivity extends AppCompatActivity {
 
     // Pantalla de solicitud de permisos explicada
     private void mostrarExplicacionPermisos() {
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle("Permisos requeridos")
                 .setMessage("Se requiere tu permiso a notificaciones para alertar por un evento NFC y tu permiso a almacenamiento (Android 8 e inferior) para poder guardar los logs.\n\n¿Deseas otorgarlos ahora?")
                 .setCancelable(false)

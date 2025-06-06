@@ -82,7 +82,7 @@ public class HistorialFragment extends Fragment {
 
     // Filtra archivos por fecha seleccionada
     private void filtrarArchivosPorFecha(String fechaDeseada_ddMMyy) {
-        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "NFCDroid");
+        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "NFCatch");
 
         try {
             SimpleDateFormat formatoEntrada = new SimpleDateFormat("dd-MM-yy", Locale.getDefault());
@@ -104,7 +104,7 @@ public class HistorialFragment extends Fragment {
 
     // Carga todos los archivos guardados de log
     private void cargarArchivosGuardados() {
-        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "NFCDroid");
+        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "NFCatch");
 
         if (dir.exists() && dir.isDirectory()) {
             File[] archivos = dir.listFiles((d, name) -> name.endsWith(".txt"));

@@ -62,9 +62,9 @@ public class ServicioSegundoPlano extends Service {
         recrearCanalesNotificaciones();
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("NFCDroid activo")
+                .setContentTitle("NFCatch Activo")
                 .setContentText("Escuchando eventos NFC en segundo plano")
-                .setSmallIcon(R.mipmap.ic_launcher_round)
+                .setSmallIcon(R.mipmap.nfcatch_round)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true)
                 .build();
@@ -292,7 +292,7 @@ public class ServicioSegundoPlano extends Service {
         );
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, canalNotificacion)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.mipmap.nfcatch)
                 .setContentTitle("¡TUVISTE UN EVENTO NFC!")
                 .setContentText("Revisa el log en el historial de la app")
                 .setAutoCancel(true)
@@ -435,7 +435,7 @@ public class ServicioSegundoPlano extends Service {
     // Guardado del log en memoria interna
     private void guardarLog(String contenido) {
         try {
-            File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "NFCDroid");
+            File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "NFCatch");
             if (!dir.exists()) dir.mkdirs();
 
             String nombre = "log_nfc_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date()) + ".txt";

@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">NFCDroid</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">NFCDroid</string>
-    <string name="nav_header_subtitle">Supervisión de eventos NFC</string>
+    <string name="app_name">NFCatch</string>
+    <string name="navigation_drawer_open">Abrir menú de navegación</string>
+    <string name="navigation_drawer_close">Cerrar menú de navegación</string>
+    <string name="nav_header_title">NFCatch</string>
+    <string name="nav_header_subtitle">Registremos cada interacción</string>
     <string name="nav_header_desc">Navigation header</string>
 
 
@@ -14,12 +14,12 @@
     <string name="menu_acerca_de">Acerca de</string>
     <string name="menu_salir">Salir de la aplicación</string>
 
-    <string name="bienvenida">¡Bienvenid@ a NFCDroid!</string>
+    <string name="bienvenida">¡Bienvenid@ a NFCatch!</string>
     <string name="textosplash">La aplicación requiere de ciertos permisos para funcionar correctamente.\n\nSe te solicitarán los permisos necesarios por favor acéptalos.</string>
     <string name="version">Versión de la aplicación</string>
-    <string name="descripcion">Proyecto de Tesis realizado para obtener el título de:\nIngeniero en Computación\n\nAsesores:\nDr. en C. y E. Eleazar Aguirre Anaya\nM.S.T.I. Verónica Salas Jiménez\n Dr. en E. Maria Alejandra Martínez Camargo\n\nESIME Culhuacan / CISEG-CIC</string>
+    <string name="descripcion">Proyecto de Titulación realizado para obtener el título de:\nIngeniero en Computación\n\nAsesores:\nDr. en C. y E. Eleazar Aguirre Anaya\nM.S.T.I. Verónica Salas Jiménez\n Dr. en E. Maria Alejandra Martínez Camargo\n\nESIME Culhuacan / CISEG-CIC</string>
     <string name="licencia">Este proyecto está licenciado bajo Apache 2.0</string>
-    <string name="license_button">Licencia</string>
+    <string name="license_button">LICENCIA</string>
     <string name="enlace1">ESIME CULHUACAN</string>
     <string name="enlace2">CISEG-CIC</string>
     <string name="autor">Copyright 2025. Luis Alejandro Vázquez Zárate\nInstituto Politécnico Nacional</string>

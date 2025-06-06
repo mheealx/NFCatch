@@ -21,6 +21,7 @@ import androidx.fragment.app.Fragment;
 import com.esime.nfcdroid2.R;
 import com.esime.nfcdroid2.services.ServicioSegundoPlano;
 import com.esime.nfcdroid2.utils.*;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -321,7 +322,7 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
         for (int i = 0; i < techOptions.length; i++)
             checkedItems[i] = selectedTechFilters.contains(techOptions[i]);
 
-        new AlertDialog.Builder(requireContext())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Filtrar por tecnologías")
                 .setMultiChoiceItems(techOptions, checkedItems, (dialog, which, isChecked) -> {
                     String tech = techOptions[which];
@@ -340,7 +341,7 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
     private void guardarLog() {
         try {
             File documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-            File appDir = new File(documentsDir, "NFCDroid");
+            File appDir = new File(documentsDir, "NFCatch");
             if (!appDir.exists()) appDir.mkdirs();
 
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
@@ -348,7 +349,7 @@ public class HomeFragment extends Fragment implements LogRegistry.LogUpdateListe
 
             try (FileOutputStream fos = new FileOutputStream(file)) {
                 fos.write(fullLog.toString().getBytes());
-                Toast.makeText(getContext(), "Log guardado en Documents/NFCDroid", Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "Log guardado en Documents/NFCatch", Toast.LENGTH_LONG).show();
             }
         } catch (Exception e) {
             Toast.makeText(getContext(), "Error al guardar el log: " + e.getMessage(), Toast.LENGTH_LONG).show();

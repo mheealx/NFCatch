@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/side_nav_bar">
+    android:background="@drawable/splashfondo">
 
     <!-- ScrollView para permitir el desplazamiento en pantallas pequeñas -->
     <android.widget.ScrollView
@@ -42,7 +42,7 @@
                 android:layout_height="309dp"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="16dp"
-                android:src="@mipmap/logo_sinfondo" />
+                android:src="@mipmap/nfcatch" />
 
             <!-- Texto de información -->
             <TextView
@@ -68,7 +68,7 @@
                 android:layout_marginEnd="32dp"
                 android:text="Comenzar"
                 android:textAllCaps="true"
-                android:textColor="?android:textColorPrimary"
+                android:textColor="@android:color/white"
                 android:layout_gravity="center_horizontal"/>
 
         </LinearLayout>

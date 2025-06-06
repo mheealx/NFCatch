@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.acercade.AcercaFragment"
-    android:background="@drawable/side_nav_bar">
+    android:background="@drawable/acercadefondo">
 
 
     <!-- ScrollView para permitir el desplazamiento en pantallas pequeñas -->
@@ -27,7 +27,7 @@
                 android:layout_width="224dp"
                 android:layout_height="219dp"
                 android:layout_marginTop="16dp"
-                android:src="@mipmap/logo_sinfondo"
+                android:src="@mipmap/nfcatchcompleto"
                 android:layout_gravity="center_horizontal"/>
 
             <!-- Nombre de la aplicación -->
@@ -37,10 +37,10 @@
                 android:layout_height="wrap_content"
                 android:text="@string/app_name"
                 android:textAlignment="center"
-                android:textColor="?android:textColorPrimary"
+                android:textColor="@color/white"
                 android:textStyle="bold"
                 android:textSize="24sp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="18dp"
                 android:layout_gravity="center_horizontal"/>
 
             <!-- Versión de la aplicación -->
@@ -50,7 +50,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/version"
                 android:textStyle="italic"
-                android:textColor="?android:textColorPrimary"
+                android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textAlignment="center"
                 android:layout_marginTop="8dp"
@@ -63,7 +63,7 @@
                 android:text="@string/licencia"
                 android:textStyle="italic"
                 android:textAlignment="center"
-                android:textColor="?android:textColorPrimary"
+                android:textColor="@color/white"
                 android:textSize="14sp"
                 android:layout_marginTop="16dp"
                 android:layout_gravity="center_horizontal"/>
@@ -76,7 +76,7 @@
                 android:text="@string/descripcion"
                 android:textStyle="bold"
                 android:textAlignment="center"
-                android:textColor="?android:textColorPrimary"
+                android:textColor="@color/white"
                 android:textSize="14sp"
                 android:layout_marginTop="16dp"
                 android:layout_gravity="center_horizontal"/>
@@ -127,7 +127,7 @@
                 android:text="@string/autor"
 
                 android:textAlignment="center"
-                android:textColor="?android:textColorPrimary"
+                android:textColor="@color/white"
                 android:textSize="12sp"
                 android:layout_marginTop="20dp"
                 android:layout_gravity="center_horizontal" />

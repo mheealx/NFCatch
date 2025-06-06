@@ -1,9 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Theme.NFCDroid" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <!-- Primary brand color. -->
-        <item name="colorPrimary">#B8860B</item>
-        <item name="colorPrimaryVariant">#B8860B</item>
+        <!-- Mantén todas tus configuraciones actuales -->
+        <item name="colorPrimary">#1F3A5F</item>
+        <item name="colorPrimaryVariant">#0D1B2A</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
@@ -11,6 +10,20 @@
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
+
+        <!-- Añade esto para sobrescribir solo los botones del diálogo -->
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.NFCDroid.AlertDialog</item>
     </style>
+
+    <!-- Estilo específico para diálogos en modo oscuro -->
+    <style name="ThemeOverlay.NFCDroid.AlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="buttonBarPositiveButtonStyle">@style/WhiteTextButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/WhiteTextButton</item>
+        <item name="buttonBarNeutralButtonStyle">@style/WhiteTextButton</item>
+    </style>
+
+    <style name="WhiteTextButton" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">@android:color/white</item> <!-- Texto blanco -->
+    </style>
+
 </resources>

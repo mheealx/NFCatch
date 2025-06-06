@@ -13,7 +13,7 @@
         android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Consola de Eventos"
+        android:text="Pantalla de Eventos"
         android:textSize="18sp"
         android:textStyle="bold"
         android:textColor="?android:textColorPrimary"
@@ -44,7 +44,7 @@
             android:background="@drawable/bg_searchview"
             android:iconifiedByDefault="false"
             android:padding="8dp"
-            android:queryHint="Buscar en consola ......" />
+            android:queryHint="Buscar evento ......" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/filterButton"
@@ -52,6 +52,8 @@
             android:layout_height="wrap_content"
             android:text="Filtrar"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:backgroundTint="?attr/colorPrimary"
+            android:textColor="@android:color/white"
             android:layout_marginStart="8dp" />
     </LinearLayout>
 
@@ -120,7 +122,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:text="Borrar Consola"
+            android:text="Borrar Pantalla"
+            android:backgroundTint="?attr/colorPrimary"
+            android:textColor="@android:color/white"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
     </LinearLayout>
 
